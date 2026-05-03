@@ -7,4 +7,9 @@ build
 # Ignore Kotlin plugin data
 .kotlin
 
-# test
+
+# Mac
+.DS_Store
+
+# VS Code
+.VSCodeCounter/
