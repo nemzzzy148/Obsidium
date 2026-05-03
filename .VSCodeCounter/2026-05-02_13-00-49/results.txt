@@ -1,0 +1,65 @@
+Date : 2026-05-02 13:00:49
+Directory : /Users/nemesisverstraete/Desktop/Java/obsidium
+Total : 19 files,  656 codes, 58 comments, 156 blanks, all 870 lines
+
+Languages
++-----------------+------------+------------+------------+------------+------------+
+| language        | files      | code       | comment    | blank      | total      |
++-----------------+------------+------------+------------+------------+------------+
+| Java            |         15 |        595 |         20 |        126 |        741 |
+| Batch           |          1 |         32 |         32 |         19 |         83 |
+| Python          |          1 |         19 |          4 |          7 |         30 |
+| Java Properties |          2 |         10 |          2 |          4 |         16 |
++-----------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                  | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                     |         19 |        656 |         58 |        156 |        870 |
+| . (Files)                                                                                             |          3 |         52 |         38 |         29 |        119 |
+| gradle                                                                                                |          1 |          9 |          0 |          1 |         10 |
+| gradle/wrapper                                                                                        |          1 |          9 |          0 |          1 |         10 |
+| lib                                                                                                   |         15 |        595 |         20 |        126 |        741 |
+| lib/src                                                                                               |         15 |        595 |         20 |        126 |        741 |
+| lib/src/main                                                                                          |         14 |        595 |         20 |        125 |        740 |
+| lib/src/main/java                                                                                     |         14 |        595 |         20 |        125 |        740 |
+| lib/src/main/java/org                                                                                 |         14 |        595 |         20 |        125 |        740 |
+| lib/src/main/java/org/obsidium                                                                        |         13 |        566 |         20 |        116 |        702 |
+| lib/src/main/java/org/obsidium (Files)                                                                |          2 |        118 |         16 |         42 |        176 |
+| lib/src/main/java/org/obsidium/event                                                                  |          4 |        193 |          1 |         13 |        207 |
+| lib/src/main/java/org/obsidium/geometry                                                               |          1 |         21 |          0 |          3 |         24 |
+| lib/src/main/java/org/obsidium/graphics                                                               |          5 |        216 |          3 |         53 |        272 |
+| lib/src/main/java/org/obsidium/image                                                                  |          1 |         18 |          0 |          5 |         23 |
+| lib/src/main/java/org/time                                                                            |          1 |         29 |          0 |          9 |         38 |
+| lib/src/test                                                                                          |          1 |          0 |          0 |          1 |          1 |
+| lib/src/test/java                                                                                     |          1 |          0 |          0 |          1 |          1 |
+| lib/src/test/java/org                                                                                 |          1 |          0 |          0 |          1 |          1 |
+| lib/src/test/java/org/obsidium                                                                        |          1 |          0 |          0 |          1 |          1 |
++-------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------------------------+-----------------+------------+------------+------------+------------+
+| filename                                                                                              | language        | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------+-----------------+------------+------------+------------+------------+
+| /Users/nemesisverstraete/Desktop/Java/obsidium/ex.py                                                  | Python          |         19 |          4 |          7 |         30 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/gradle.properties                                      | Java Properties |          1 |          2 |          3 |          6 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/gradle/wrapper/gradle-wrapper.properties               | Java Properties |          9 |          0 |          1 |         10 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/gradlew.bat                                            | Batch           |         32 |         32 |         19 |         83 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/Obsidium.java           | Java            |         34 |          9 |          7 |         50 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/Window.java             | Java            |         84 |          7 |         35 |        126 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/event/Event.java        | Java            |         12 |          0 |          2 |         14 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/event/Events.java       | Java            |        113 |          1 |          8 |        122 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/event/Key.java          | Java            |         63 |          0 |          1 |         64 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/event/Type.java         | Java            |          5 |          0 |          2 |          7 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/geometry/Vector2.java   | Java            |         21 |          0 |          3 |         24 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/graphics/Color.java     | Java            |         22 |          0 |          5 |         27 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/graphics/Draw.java      | Java            |         63 |          0 |         10 |         73 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/graphics/Font.java      | Java            |         76 |          2 |         25 |        103 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/graphics/Surface.java   | Java            |         40 |          0 |          9 |         49 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/graphics/Transform.java | Java            |         15 |          1 |          4 |         20 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/obsidium/image/Image.java        | Java            |         18 |          0 |          5 |         23 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/main/java/org/time/Clock.java                  | Java            |         29 |          0 |          9 |         38 |
+| /Users/nemesisverstraete/Desktop/Java/obsidium/lib/src/test/java/org/obsidium/LibraryTest.java        | Java            |          0 |          0 |          1 |          1 |
+| Total                                                                                                 |                 |        656 |         58 |        156 |        870 |
++-------------------------------------------------------------------------------------------------------+-----------------+------------+------------+------------+------------+
