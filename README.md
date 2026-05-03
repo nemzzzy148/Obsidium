@@ -1,1 +1,1 @@
-# Obsidium ![Obsidium] Obsidium Logo.png
+# Obsidium ![Obsidium Logo](Obsidium Logo.png)
