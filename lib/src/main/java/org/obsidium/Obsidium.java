@@ -9,25 +9,24 @@ import org.obsidium.geometry.Vector2;
 
 public class Obsidium {
     private static final ArrayList<Window> windows = new ArrayList<>();
+    private static boolean first = true;
 
-    /**
-     * 
-     * @param width
-     * @param height
-     * @param title
-     * @return Window
-     * @since V1.0
-     */
     public static Window createWindow(int width, int height, String title, boolean stopProgramOnClose) {
+        init();
         Window window = new Window(width, height, title, stopProgramOnClose);
         windows.add(window);
         return window;
     }
 
     public static Window createWindow(int width, int height, String title) {
-        Window window = new Window(width, height, title, false);
-        windows.add(window);
-        return window;
+        return createWindow(width, height, title, false);
+    }
+
+    private static void init() {
+        if (first) {
+            System.setProperty("sun.java2d.opengl", "true");
+            first = false;
+        }
     }
 
     protected static void closeWindow(Window window) {
