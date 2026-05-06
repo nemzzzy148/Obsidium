@@ -52,7 +52,7 @@ public class Window {
     public Events events;
     public Mouse mouse;
 
-    public Window(int width, int height, String title, boolean stopProgramOnClose) {
+    public Window(int width, int height, String title, int x, int y, boolean stopProgramOnClose) {
         this.title = title;
         this.width = width;
         this.heigth = height;
@@ -68,6 +68,9 @@ public class Window {
 
         frame.pack();
         frame.setResizable(false);
+
+        setPos(x, y);
+
         frame.setVisible(true);
 
 
@@ -104,22 +107,22 @@ public class Window {
 
     // handy features
 
-    public Vector2 getCenter() {
+    public final Vector2 getCenter() {
         return new Vector2(width/2, heigth/2);
     }
 
-    public void setPos(int x, int y) {
+    public final void setPos(int x, int y) {
         frame.setLocation(x, y);
     }
 
-    public Vector2 getPos() {
+    public final Vector2 getPos() {
         return new Vector2(getPosX(), getPosY());
     }
 
-    public int getPosX() {
+    public final int getPosX() {
         return frame.getLocation().x;
     }
-    public int getPosY() {
+    public final int getPosY() {
         return frame.getLocation().y;
     }
 

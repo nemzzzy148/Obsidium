@@ -4,5 +4,7 @@ public enum Type {
     QUIT,
     KEY,
     KEYDOWN,
-    KEYUP
+    KEYUP,
+    MOUSEDOWN,
+    MOUSEUP
 }

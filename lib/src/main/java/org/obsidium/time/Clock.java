@@ -28,9 +28,8 @@ public class Clock {
         return tick();
     }
     public double getFPS() {
-        return (1/(deltaTime / 1_000.0));
+        return 1_000.0 / deltaTime;
     }
-
     public double getDeltaTime() {
         return deltaTime;
     }

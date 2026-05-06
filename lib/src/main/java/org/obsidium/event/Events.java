@@ -4,6 +4,8 @@ import java.awt.Canvas;
 import java.awt.Frame;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.LinkedList;
@@ -29,12 +31,15 @@ public class Events {
     
 
     private void addEventListener(Frame frame, Canvas canvas) {
+        // window
         frame.addWindowListener(new WindowAdapter(){
             @Override
             public void windowClosing(WindowEvent e) {
                 events.add( new Event(Type.QUIT) );
             }
         });
+
+        // key
         canvas.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -50,6 +55,19 @@ public class Events {
                 if (k != null) {
                     keyEvent( new Event(Type.KEYUP, k));
                 }
+            }
+        });
+
+        // mouse
+        canvas.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                mouseEvent( new Event(Type.MOUSEDOWN) );
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                mouseEvent( new Event(Type.MOUSEUP));
             }
         });
     }
@@ -119,6 +137,12 @@ public class Events {
             case KeyEvent.VK_F12 -> k = Key.F12;
         }
         return k;
+    }
+
+    private void mouseEvent(Event e) {
+        synchronized (events) {
+            events.add(e);
+        }
     }
 
     private void keyEvent(Event e) {
