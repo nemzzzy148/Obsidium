@@ -28,14 +28,18 @@ public class Events {
     private final LinkedList<Event> pressedKeys = new LinkedList<>();
     private final LinkedList<Event> releasedKeys = new LinkedList<>();
 
-    
+    // thread safety
+
+    private final Object lock = new Object();
 
     private void addEventListener(Frame frame, Canvas canvas) {
         // window
         frame.addWindowListener(new WindowAdapter(){
             @Override
             public void windowClosing(WindowEvent e) {
-                events.add( new Event(Type.QUIT) );
+                synchronized (lock) {
+                    events.add( new Event(Type.QUIT) );
+                }
             }
         });
 
@@ -140,13 +144,13 @@ public class Events {
     }
 
     private void mouseEvent(Event e) {
-        synchronized (events) {
+        synchronized (lock) {
             events.add(e);
         }
     }
 
     private void keyEvent(Event e) {
-        synchronized (events) {
+        synchronized (lock) {
             if (e.type == Type.KEYDOWN) {
                 if (!keyContains(e.key)) {
                     pressedKeys.add( new Event(Type.KEY, e.key) );
@@ -171,29 +175,19 @@ public class Events {
         return false;
     }
     public void clear() {
-        synchronized (events) {
-            events.clear();
-            releasedKeys.clear();
-            pressedKeys.clear();
-        }
+        events.clear();
+        releasedKeys.clear();
+        pressedKeys.clear();
     }
 
 
     public Event[] get() {
-        synchronized (events) {
+        synchronized (lock) {
             LinkedList<Event> allEvents = new LinkedList<>();
-            for (Event e : events) {
-                allEvents.add(e);
-            }
-            for (Event e : pressedKeys) {
-                allEvents.add(e);
-            }
-            for (Event e : releasedKeys) {
-                allEvents.add(e);
-            }
-            for (Event e : keys) {
-                allEvents.add(e);
-            }
+            allEvents.addAll(events);
+            allEvents.addAll(pressedKeys);
+            allEvents.addAll(releasedKeys);
+            allEvents.addAll(keys);
             Event[] e = allEvents.toArray(Event[]::new);
             clear();
             return e;
@@ -201,7 +195,7 @@ public class Events {
     }
 
     public Event[] getPressed() {
-        synchronized (keys) {
+        synchronized (lock) {
             return keys.toArray(Event[]::new);
         }
     }
