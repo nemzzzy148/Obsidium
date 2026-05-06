@@ -33,7 +33,7 @@ Place the library(`Obsidium.jar`) in a `libs/` folder at the project root:
 ```
 your-project/
 - libs/
-- Obsidium.jar
+  - Obsidium.jar
 - src/
 - build.gradle.kts
 ```
