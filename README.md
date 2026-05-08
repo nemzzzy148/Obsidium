@@ -71,7 +71,7 @@ import org.obsidium.event.*;
 
 public class Game {
     public static void main(String[] args) {
-        Window window = Obsidium.createWindow(400, 400, "Obsidium");
+        Window window = Obsidium.createWindow();
 
         while (true) { 
             for (Event e : window.events.get()) {
