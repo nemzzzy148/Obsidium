@@ -1,5 +1,10 @@
 package org.obsidium.event;
 
+/** 
+ * An enumerator that contains all the possible key events.
+ * 
+ * @since 1.0
+ */
 public enum Key {
     UP,
     DOWN,

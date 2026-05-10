@@ -10,10 +10,22 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.LinkedList;
 
+/** 
+ * A class that manages the events of windows.
+ * 
+ * ---advanced---
+ * 
+ * This class should only be instantiated by Obsidium.
+ */
 public class Events {
     private final Frame frame;
     private final Canvas canvas;
 
+    /**
+     * ---advanced---
+     * 
+     * This constructor should only be instantiated by Obsidium.
+     */
     public Events(Frame frame, Canvas canvas) {
         this.frame = frame;
         this.canvas = canvas;
@@ -174,13 +186,34 @@ public class Events {
         }
         return false;
     }
+    
+    /**
+     * Clears the event list without receiving the accumulated events.
+     * 
+     * <p> If this method is called, it will clear the event list without receiving the accumulated events.
+     * 
+     * If this method or {@link #get()} isn't called every frame, events will accumulated without being cleared.</p>
+     * 
+     * @since 1.0
+     */
     public void clear() {
         events.clear();
         releasedKeys.clear();
         pressedKeys.clear();
     }
 
-
+    /** 
+     * Returns all the events that happend in this frame.
+     * 
+     * <p> When this method is called all the events are cleared.
+     * After this process it is ready to receive new events.</p>
+     * 
+     * @see Event
+     * 
+     * @return an array of all the {@link Event}
+     * 
+     * @since 1.0
+    */
     public Event[] get() {
         synchronized (lock) {
             LinkedList<Event> allEvents = new LinkedList<>();
@@ -194,6 +227,17 @@ public class Events {
         }
     }
 
+    /** 
+     * Returns an array of keys that were pressed this frame.
+     * 
+     * <p> This will not clear the event list!
+     * Meaning it will not reset the events to receive new ones the next frame.
+     * If you want to clear the event list use {@link #get()} of {@link #clear()}.</p>
+     * 
+     * @return an array of pressed keys
+     * 
+     * @since 1.0
+     */
     public Event[] getPressed() {
         synchronized (lock) {
             return keys.toArray(Event[]::new);

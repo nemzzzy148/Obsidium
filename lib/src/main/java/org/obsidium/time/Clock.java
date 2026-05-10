@@ -1,5 +1,10 @@
 package org.obsidium.time;
 
+/**
+ * This class is used to work with time.
+ * 
+ * @since 1.0
+ */
 public class Clock {
     private long lastTime;
     private double deltaTime;
@@ -8,6 +13,13 @@ public class Clock {
         lastTime = System.nanoTime();
     }
 
+    /**
+     * Returns how many milliseconds this frame took to complete.
+     * 
+     * @return the amount of milliseconds this frame took to complete
+     * 
+     * @since 1.0
+     */
     public double tick() {
         long currentTime = System.nanoTime();
         long diff = currentTime - lastTime;
@@ -18,6 +30,16 @@ public class Clock {
         lastTime = currentTime;
         return deltaTime;
     }
+
+    /**
+     * Synchronizes the games loop to a specific frame rate that you set.
+     * 
+     * @param targetFPS that it tries to approtch
+     * 
+     * @return the amount of milliseconds this frame took to complete
+     * 
+     * @since 1.0
+     */
     public double tick(double targetFPS) {
         double targetNanos = 1_000_000_000.0 / targetFPS;
 
@@ -27,9 +49,25 @@ public class Clock {
 
         return tick();
     }
+
+    /**
+     * Returns the current frames per second.
+     * 
+     * @return the current number of frames per second
+     * 
+     * @since 1.0
+     */
     public double getFPS() {
         return 1_000.0 / deltaTime;
     }
+
+    /**
+     * Returns the time taken to complete the last frame.
+     * 
+     * @return the duration of the last frame in milliseconds.
+     * 
+     * @since 1.0
+     */
     public double getDeltaTime() {
         return deltaTime;
     }

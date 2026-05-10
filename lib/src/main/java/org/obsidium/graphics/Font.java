@@ -7,14 +7,42 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * A class that represents a font with methods to render text with this font.
+ * 
+ * Available built-in font types:
+ * <ul>
+ *  <li>{@code SERIF = 0}</li>
+ *  <li>{@code SANSSERIF = 1}</li>
+ *  <li>{@code MONOSPACED = 2}</li>
+ *  <li>{@code DIALOG = 3}</li>
+ *  <li>{@code DIALOGINPUT = 4}</li>
+ * </ul>
+ * 
+ * @since 1.0
+ */
 public class Font {
 
     // build in fonts
 
+    /** A built-in font type. 
+     * @since 1.0*/
     public static final int SERIF = 0;
+
+    /** A built-in font type. 
+     * @since 1.0*/
     public static final int SANSSERIF = 1;
+
+    /** A built-in font type. 
+     * @since 1.0*/
     public static final int MONOSPACED = 2;
+
+    /** A built-in font type. 
+     * @since 1.0*/
     public static final int DIALOG = 3;
+
+    /** A built-in font type. 
+     * @since 1.0*/
     public static final int DIALOGINPUT = 4;
 
     private java.awt.Font font;
@@ -23,27 +51,78 @@ public class Font {
 
     private float size;
 
+    /**
+     * Sets the size of the font.
+     * 
+     * @param size
+     * 
+     * @since 1.0
+     */
     public void setSize(float size) {
         if (size < 1) return;
         font = font.deriveFont(size);
     }
 
+    /**
+     * Returns the font size.
+     * 
+     * @return {@code size}
+     * 
+     * @since 1.0
+     */
     public float getSize() {
         return size;
     }
 
     private String path = "NO_PATH";
 
+    /**
+     * Returns the path of the font.
+     * 
+     * <p> If this is a custom font, it will return the path. Otherwise it will return {@code NO_PATH}.</p>
+     * 
+     * @return {@code path}
+     * 
+     * @since 1.0
+     */
     public String getPath() {
         return path;
     }
 
     private int type = -1;
 
+    /**
+     * Returns the type of font.
+     * 
+     * Available types:
+     * <ul>
+     *  <li>{@code SERIF = 0}</li>
+     *  <li>{@code SANSSERIF = 1}</li>
+     *  <li>{@code MONOSPACED = 2}</li>
+     *  <li>{@code DIALOG = 3}</li>
+     *  <li>{@code DIALOGINPUT = 4}</li>
+     * </ul>
+     * 
+     * <p> This will return a valid type {@code 0 - 4} if it isn't a custom font, otherwise it will return 1.</p>
+     * 
+     * @return {@code type}
+     * 
+     * @since 1.0
+     */
     public int getType() {
         return type;
     }
 
+    /**
+     * Creates a font of a .ttf file at the given path.
+     * 
+     * For built in fonts use {@link #Font(int, float)}
+     * 
+     * @param path of the .ttf file
+     * @param size of the font
+     * 
+     * @since 1.0
+     */
     public Font(String path, float size) {
         this.path = path;
         this.size = size;
@@ -58,6 +137,24 @@ public class Font {
 
         this.font = this.font.deriveFont(size);
     }
+
+    /**
+     * Creates a font from a built-in type.
+     * 
+     * Available built-in font types:
+     * <ul>
+     *  <li>{@code SERIF = 0}</li>
+     *  <li>{@code SANSSERIF = 1}</li>
+     *  <li>{@code MONOSPACED = 2}</li>
+     *  <li>{@code DIALOG = 3}</li>
+     *  <li>{@code DIALOGINPUT = 4}</li>
+     * </ul>
+     * 
+     * @param type of the font
+     * @param size of the font
+     * 
+     * @since 1.0
+     */
     public Font(int type, float size) {
         this.type = type < 0 || type > 4 ? 0 : type;
         this.size  = size < 1 ? 1 : size;
@@ -74,6 +171,18 @@ public class Font {
         this.font = new java.awt.Font(fontName, 1, (int)size);
     }
 
+    /**
+     * Renders the font on a new surface.
+     * 
+     * <p> The width and height will automatically be calculated. </p>
+     * 
+     * @param text that will be rendered
+     * @param color of the text
+     * 
+     * @return {@link Surface}
+     * 
+     * @since 1.0
+     */
     public Surface render(String text, Color color) {
         Canvas c = new Canvas();
         FontMetrics fm = c.getFontMetrics(font);
@@ -88,12 +197,37 @@ public class Font {
 
         return surface;
     }
+
+    /**
+     * Renders the font on this surface.
+     * 
+     * @param surface that the text will be rendered too
+     * @param x the x-coordinate where the text will be rendered to, relative to the surface
+     * @param y the y-coordinate where the text will be rendered to, relative to the surface
+     * @param text the text that will be rendered
+     * @param color the color of the text
+     * 
+     * @since 1.0
+     */
     public void render(Surface surface, int x, int y, String text, Color color) {
         renderOntoGraphics2D(surface.getGraphics2D(), x, y, text, color);
     }
+
+    /**
+     * Renders the font on this window.
+     * 
+     * @param window that the text will be rendered too
+     * @param x the x-coordinate where the text will be rendered to, relative to the window
+     * @param y the y-coordinate where the text will be rendered to, relative to the window
+     * @param text the text that will be rendered
+     * @param color the color of the text
+     * 
+     * @since 1.0
+     */
     public void render(org.obsidium.Window window, int x, int y, String text, Color color) {
         renderOntoGraphics2D(window.getGraphics2D(), x, y, text, color);
     }
+
     private void renderOntoGraphics2D(Graphics2D graphics2D, int x, int y, String text, Color color) {
         graphics2D.setFont(font);
         graphics2D.setColor(Color.awtColor(color));
