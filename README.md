@@ -18,9 +18,9 @@ making it easy to pick up if you know Pygame.
   
 And for each component, more specific functionality. 
 
-## [Discord](https://github.com/nemzzzy148/Obsidium)
-
-## [Documentation website](https://nemzzzy148.github.io/ObsidiumDocumentation/)
+## Platforms:
+  - [Discord](https://github.com/nemzzzy148/Obsidium)
+  - [Documentation website](https://nemzzzy148.github.io/ObsidiumDocumentation/)
 
 ## Setup with Gradle
  
