@@ -1,3 +1,4 @@
+![banner](lib/src/main/resources/images/banner.png)
 # Obsidium
 
 Obsidium is a lightweight, CPU-rendered game library for Java, built on top of
