@@ -8,6 +8,7 @@ import org.obsidium.graphics.Surface;
 import org.obsidium.graphics.Transform;
 import org.obsidium.image.Image;
 import org.obsidium.time.Clock;
+import org.obsidium.window.Window;
 
 public class ImageTest {
     public static void main(String[] args) {

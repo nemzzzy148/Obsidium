@@ -1,5 +1,7 @@
 package org.obsidium.graphics;
 
+import org.obsidium.window.Window;
+
 import java.awt.Canvas;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
@@ -31,7 +33,7 @@ public class Font {
 
     /** A built-in font type. 
      * @since 1.0*/
-    public static final int SANSSERIF = 1;
+    public static final int SANS_SERIF = 1;
 
     /** A built-in font type. 
      * @since 1.0*/
@@ -43,7 +45,7 @@ public class Font {
 
     /** A built-in font type. 
      * @since 1.0*/
-    public static final int DIALOGINPUT = 4;
+    public static final int DIALOG_INPUT = 4;
 
     private java.awt.Font font;
 
@@ -79,7 +81,7 @@ public class Font {
     /**
      * Returns the path of the font.
      * 
-     * <p> If this is a custom font, it will return the path. Otherwise it will return {@code NO_PATH}.</p>
+     * <p> If this is a custom font, it will return the path. Otherwise, it will return {@code NO_PATH}.</p>
      * 
      * @return {@code path}
      * 
@@ -115,8 +117,7 @@ public class Font {
 
     /**
      * Creates a font of a .ttf file at the given path.
-     * 
-     * For built in fonts use {@link #Font(int, float)}
+     * For built-in fonts use {@link #Font(int, float)}
      * 
      * @param path of the .ttf file
      * @param size of the font
@@ -140,7 +141,6 @@ public class Font {
 
     /**
      * Creates a font from a built-in type.
-     * 
      * Available built-in font types:
      * <ul>
      *  <li>{@code SERIF = 0}</li>
@@ -161,10 +161,10 @@ public class Font {
 
         String fontName = switch(this.type) {
             case SERIF -> java.awt.Font.SERIF;
-            case SANSSERIF -> java.awt.Font.SANS_SERIF;
+            case SANS_SERIF -> java.awt.Font.SANS_SERIF;
             case MONOSPACED -> java.awt.Font.MONOSPACED;
             case DIALOG -> java.awt.Font.DIALOG;
-            case DIALOGINPUT -> java.awt.Font.DIALOG_INPUT;
+            case DIALOG_INPUT -> java.awt.Font.DIALOG_INPUT;
             default -> java.awt.Font.SERIF;
         };
 
@@ -175,12 +175,9 @@ public class Font {
      * Renders the font on a new surface.
      * 
      * <p> The width and height will automatically be calculated. </p>
-     * 
      * @param text that will be rendered
      * @param color of the text
-     * 
      * @return {@link Surface}
-     * 
      * @since 1.0
      */
     public Surface render(String text, Color color) {
@@ -221,10 +218,10 @@ public class Font {
      * @param y the y-coordinate where the text will be rendered to, relative to the window
      * @param text the text that will be rendered
      * @param color the color of the text
-     * 
+     *
      * @since 1.0
      */
-    public void render(org.obsidium.Window window, int x, int y, String text, Color color) {
+    public void render(Window window, int x, int y, String text, Color color) {
         renderOntoGraphics2D(window.getGraphics2D(), x, y, text, color);
     }
 

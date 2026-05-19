@@ -1,7 +1,5 @@
 package org.obsidium.audio;
 
-import java.nio.file.Path;
-
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -29,8 +27,7 @@ public class Audio {
      * @since 1.0
      */
     public Audio(String path) {
-        Path p = Path.of(path);
-        try (AudioInputStream audioStream = AudioSystem.getAudioInputStream(p.toFile())) {
+        try (AudioInputStream audioStream = AudioSystem.getAudioInputStream(Audio.class.getClassLoader().getResource(path))) {
             clip = AudioSystem.getClip();
             clip.open(audioStream);
         }

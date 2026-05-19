@@ -2,22 +2,23 @@ package org.obsidium.time;
 
 /**
  * This class is used to work with time.
- * 
  * @since 1.0
  */
 public class Clock {
     private long lastTime;
     private double deltaTime;
 
+    /**
+     * Creates a clock object.
+     * @since 1.0
+     */
     public Clock() {
         lastTime = System.nanoTime();
     }
 
     /**
      * Returns how many milliseconds this frame took to complete.
-     * 
      * @return the amount of milliseconds this frame took to complete
-     * 
      * @since 1.0
      */
     public double tick() {

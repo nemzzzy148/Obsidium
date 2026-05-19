@@ -6,10 +6,22 @@ package org.obsidium.event;
  * @since 1.0
  */
 public enum Type {
+    /**
+     * Activates when the window is being closed.
+     */
     QUIT,
     KEY,
-    KEYDOWN,
-    KEYUP,
-    MOUSEDOWN,
-    MOUSEUP
+    KEY_DOWN,
+    KEY_UP,
+    MOUSE_DOWN,
+    MOUSE_UP,
+    WINDOW_MAXIMIZED,
+    WINDOW_RESIZED,
+    WINDOW_MINIMIZED,
+    WINDOW_SHOWN,
+    WINDOW_MOVED,
+    WINDOW_RESTORED,
+    WINDOW_FOCUSED,
+    WINDOW_UNFOCUSED,
+    WINDOW_FULL_SCREEN
 }

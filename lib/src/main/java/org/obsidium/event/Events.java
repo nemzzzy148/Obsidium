@@ -2,19 +2,12 @@ package org.obsidium.event;
 
 import java.awt.Canvas;
 import java.awt.Frame;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.util.LinkedList;
 
 /** 
  * A class that manages the events of windows.
- * 
- * ---advanced---
- * 
+ * <b>---advanced---</b>
  * This class should only be instantiated by Obsidium.
  */
 public class Events {
@@ -22,8 +15,7 @@ public class Events {
     private final Canvas canvas;
 
     /**
-     * ---advanced---
-     * 
+     * <b>---advanced---</b>
      * This constructor should only be instantiated by Obsidium.
      */
     public Events(Frame frame, Canvas canvas) {
@@ -49,9 +41,60 @@ public class Events {
         frame.addWindowListener(new WindowAdapter(){
             @Override
             public void windowClosing(WindowEvent e) {
-                synchronized (lock) {
-                    events.add( new Event(Type.QUIT) );
+                simpleEvent( Type.QUIT );
+            }
+        });
+
+        // fullscreen window
+        frame.addWindowStateListener(new WindowStateListener() {
+            @Override
+            public void windowStateChanged(WindowEvent e) {
+                int newState = e.getNewState();
+                int oldState = e.getOldState();
+                boolean wasMax = (oldState & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH;
+                boolean isMax = (newState & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH;
+
+
+                if (isMax && !wasMax) {
+                    simpleEvent( Type.WINDOW_MAXIMIZED );
                 }
+                if (!isMax && wasMax) {
+                    simpleEvent(Type.WINDOW_RESTORED);
+                }
+            }
+        });
+
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowIconified(WindowEvent e) {
+                simpleEvent( Type.WINDOW_MINIMIZED );
+            }
+
+            @Override
+            public void windowDeiconified(WindowEvent e) {
+                simpleEvent( Type.WINDOW_RESTORED );
+            }
+
+            @Override
+            public void windowActivated(WindowEvent e) {
+                simpleEvent( Type.WINDOW_FOCUSED );
+            }
+
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+                simpleEvent( Type.WINDOW_UNFOCUSED );
+            }
+        });
+
+        frame.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                simpleEvent( Type.WINDOW_RESIZED );
+            }
+
+            @Override
+            public void componentMoved(ComponentEvent e) {
+                simpleEvent( Type.WINDOW_MOVED );
             }
         });
 
@@ -61,7 +104,7 @@ public class Events {
             public void keyPressed(KeyEvent e) {
                 Key k = keyEventToKey(e);
                 if (k != null) {
-                    keyEvent( new Event(Type.KEYDOWN, k));
+                    keyEvent( new Event(Type.KEY_DOWN, k));
                 }
             }
 
@@ -69,7 +112,7 @@ public class Events {
             public void keyReleased(KeyEvent e) {
                 Key k = keyEventToKey(e);
                 if (k != null) {
-                    keyEvent( new Event(Type.KEYUP, k));
+                    keyEvent( new Event(Type.KEY_UP, k));
                 }
             }
         });
@@ -78,12 +121,12 @@ public class Events {
         canvas.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                mouseEvent( new Event(Type.MOUSEDOWN) );
+                simpleEvent( Type.MOUSE_DOWN);
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                mouseEvent( new Event(Type.MOUSEUP));
+                simpleEvent( Type.MOUSE_UP);
             }
         });
     }
@@ -155,26 +198,31 @@ public class Events {
         return k;
     }
 
-    private void mouseEvent(Event e) {
+    /**
+     * Adds a simple event to the event list.
+     * <p>A simple event is an event with only a set type.</p>
+     * @param type that the event will contain
+     * @since 1.0
+     */
+    public void simpleEvent(Type type) {
         synchronized (lock) {
-            events.add(e);
+            events.add( new Event(type) );
         }
     }
 
     private void keyEvent(Event e) {
         synchronized (lock) {
-            if (e.type == Type.KEYDOWN) {
+            if (e.type == Type.KEY_DOWN) {
                 if (!keyContains(e.key)) {
-                    pressedKeys.add( new Event(Type.KEY, e.key) );
+                    pressedKeys.add(e);
                 }
-                keys.add(e);
-
+                keys.add( new Event(Type.KEY, e.key));
             }
-            else if (e.type == Type.KEYUP) {
+            else if (e.type == Type.KEY_UP) {
                 if (keyContains(e.key)) {
                     releasedKeys.add(e);
                 }
-                keys.remove(e);
+                keys.removeIf(ev -> ev.key == e.key);
             }
         }
         
@@ -189,29 +237,26 @@ public class Events {
     
     /**
      * Clears the event list without receiving the accumulated events.
-     * 
      * <p> If this method is called, it will clear the event list without receiving the accumulated events.
-     * 
-     * If this method or {@link #get()} isn't called every frame, events will accumulated without being cleared.</p>
+     * If this method or {@link #get()} isn't called every frame, events will be accumulated without being cleared.</p>
      * 
      * @since 1.0
      */
     public void clear() {
-        events.clear();
-        releasedKeys.clear();
-        pressedKeys.clear();
+        synchronized (lock) {
+            events.clear();
+            releasedKeys.clear();
+            pressedKeys.clear();
+        }
     }
 
     /** 
-     * Returns all the events that happend in this frame.
-     * 
+     * Returns all the events that happened in this frame.
      * <p> When this method is called all the events are cleared.
      * After this process it is ready to receive new events.</p>
-     * 
      * @see Event
      * 
      * @return an array of all the {@link Event}
-     * 
      * @since 1.0
     */
     public Event[] get() {
@@ -221,8 +266,13 @@ public class Events {
             allEvents.addAll(pressedKeys);
             allEvents.addAll(releasedKeys);
             allEvents.addAll(keys);
+
             Event[] e = allEvents.toArray(Event[]::new);
-            clear();
+
+            events.clear();
+            releasedKeys.clear();
+            pressedKeys.clear();
+
             return e;
         }
     }
@@ -233,14 +283,13 @@ public class Events {
      * <p> This will not clear the event list!
      * Meaning it will not reset the events to receive new ones the next frame.
      * If you want to clear the event list use {@link #get()} of {@link #clear()}.</p>
-     * 
      * @return an array of pressed keys
      * 
      * @since 1.0
      */
     public Event[] getPressed() {
         synchronized (lock) {
-            return keys.toArray(Event[]::new);
+            return keys.stream().map(e -> new Event(Type.KEY, e.key)).toArray(Event[]::new);
         }
     }
 }

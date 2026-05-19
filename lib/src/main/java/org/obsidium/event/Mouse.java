@@ -6,19 +6,16 @@ import java.awt.MouseInfo;
 import org.obsidium.geometry.Vector2;
 
 /**
- * ---advanced---
- * 
+ * <b>---advanced---</b>
  * This class should only be instantiated by Obsidium.
  */
 public class Mouse {
-    private Frame frame;
+    private final Frame frame;
     
     /**
-     * ---advanced---
-     * 
+     * <b>---advanced---</b>
      * This constructor should only be instantiated by Obsidium.
-     * 
-     * @param frame
+     * @param frame used for mouse functionality
      */
     public Mouse(Frame frame) {
         this.frame = frame;
@@ -26,9 +23,7 @@ public class Mouse {
 
     /**
      * Returns the position of the mouse relative to the window.
-     * 
      * @return {@link Vector2} that contains the x and y-coordinates of the mouse
-     * 
      * @since 1.0
      */
     public Vector2 getPos() {
@@ -37,7 +32,6 @@ public class Mouse {
 
     /**
      * Returns the individual x-coordinate of the mouse relative to the screen.
-     * 
      * @return the x-coordinate of the mouse
      */
     public int getPosX() {
@@ -46,7 +40,6 @@ public class Mouse {
 
     /**
      * Returns the individual y-coordinate of the mouse relative to the screen.
-     * 
      * @return the y-coordinate of the mouse
      */
     public int getPosY() {

@@ -9,6 +9,10 @@ plugins {
     `java-library`
 }
 
+tasks.test {
+    useJUnitPlatform()
+}
+
 repositories {
     mavenCentral()
 }

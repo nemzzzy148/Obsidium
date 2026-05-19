@@ -7,7 +7,6 @@ import java.awt.image.BufferedImage;
 
 /**
  * A class with only static members that is used to transform images({@link Surface}).
- * 
  * Methods for transforming:
  * <ul>
  *  <li>{@link #scale(Surface, int, int)} - scales the surface to a set x and y coordinate.</li>
@@ -44,10 +43,10 @@ public class Transform {
     /**
      * Rotates the desired surface by a set angle.
      * 
-     * <p> When the surface is returned, it most certainly will have a diffrent width and height.
-     * This occurs because obbsidium keeps in account that when you rotate an image like for example by 45 degrees, the turned rectangle will be bigger.
-     * An easier example is like turnining a paper by 45 degrees and than taking a photo of it, the edges will be cut of because your taking the image from the same viewpoint as the unrotated image.
-     * This is called the bounding box effect. If you want to dissable this feature, use this method {@link #rotate(Surface, float, boolean)} with {@code scaleImage = false}.</p>
+     * <p> When the surface is returned, it most certainly will have a different width and height.
+     * This occurs because Obsidium keeps in account that when you rotate an image like for example by 45 degrees, the turned rectangle will be bigger.
+     * An easier example is like turning a paper by 45 degrees and then taking a photo of it, the edges will be cut of because your taking the image from the same viewpoint as the unrotated image.
+     * This is called the bounding box effect. If you want to disable this feature, use this method {@link #rotate(Surface, float, boolean)} with {@code scaleImage = false}.</p>
      * 
      * @see <a href="https://forum.affinity.serif.com/uploads/monthly_2018_08/1667706833_cropreset.JPG.6de9823bc4e6dd5f32e19081e2bd82c1.JPG">Visual reference</a>
      * 
@@ -65,11 +64,10 @@ public class Transform {
     /**
      * Rotates the desired surface by a set angle.
      * 
-     * <p> When {@code scaleImage = true}, the surface that will be returned will most certainly have a diffrent width and height.
-     * This occurs because obbsidium keeps in account that when you rotate an image like for example by 45 degrees, the turned rectangle will be bigger.
-     * An easier example is like turnining a paper by 45 degrees and than taking a photo of it, the edges will be cut of because your taking the image from the same viewpoint as the unrotated image.
+     * <p> When {@code scaleImage = true}, the surface that will be returned will most certainly have a different width and height.
+     * This occurs because Obsidium keeps in account that when you rotate an image like for example by 45 degrees, the turned rectangle will be bigger.
+     * An easier example is like turning a paper by 45 degrees and then taking a photo of it, the edges will be cut of because your taking the image from the same viewpoint as the unrotated image.
      * This is called the bounding box effect.
-     * 
      * If it is disabled, the corners will likely be cut off.</p>
      * 
      * @see <a href="https://forum.affinity.serif.com/uploads/monthly_2018_08/1667706833_cropreset.JPG.6de9823bc4e6dd5f32e19081e2bd82c1.JPG">Visual reference</a>
@@ -101,7 +99,7 @@ public class Transform {
 
         Graphics2D graphics2D = rotated.createGraphics();
         AffineTransform af = new AffineTransform();
-        af.translate(newW/2, newW/2);
+        af.translate(newW/2, newH/2);
         af.rotate(rads);
         af.translate(-w / 2.0, -h / 2.0);
 
