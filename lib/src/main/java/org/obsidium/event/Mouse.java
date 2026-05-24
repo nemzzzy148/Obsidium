@@ -1,23 +1,24 @@
 package org.obsidium.event;
 
-import java.awt.Frame;
 import java.awt.MouseInfo;
 
-import org.obsidium.geometry.Vector2;
+import org.obsidium.math.Vector2;
+
+import javax.swing.*;
 
 /**
  * <b>---advanced---</b>
  * This class should only be instantiated by Obsidium.
  */
 public class Mouse {
-    private final Frame frame;
+    private final JFrame frame;
     
     /**
      * <b>---advanced---</b>
      * This constructor should only be instantiated by Obsidium.
      * @param frame used for mouse functionality
      */
-    public Mouse(Frame frame) {
+    public Mouse(JFrame frame) {
         this.frame = frame;
     }
 

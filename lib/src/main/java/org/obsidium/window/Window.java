@@ -2,23 +2,27 @@ package org.obsidium.window;
 
 import java.awt.*;
 import java.awt.image.BufferStrategy;
-import java.awt.image.BufferedImage;
 
 import org.obsidium.Obsidium;
-import org.obsidium.event.Event;
 import org.obsidium.event.Events;
 import org.obsidium.event.Mouse;
 import org.obsidium.event.Type;
-import org.obsidium.geometry.Vector2;
+import org.obsidium.graphics.SimpleSurface;
+import org.obsidium.math.Vector2;
 import org.obsidium.graphics.Color;
 import org.obsidium.graphics.Draw;
 import org.obsidium.graphics.Surface;
+import org.obsidium.ui.UI;
+
+import javax.swing.*;
+
+import static org.obsidium.window.WindowHelper.awtValue;
 
 /**
  * A window object that represents a window on your screen.
  * <p><b>Note:</b> You should not instantiate this object yourself, instead use {@link Obsidium#createWindow()}</p>
  */
-public class Window {
+public class Window extends SimpleSurface {
     // window props
     private String title = "Obsidium Game";
 
@@ -42,18 +46,6 @@ public class Window {
         return title;
     }
 
-    private int width = 800;
-
-    /** 
-     * Returns the width in pixels of the window.
-     * @return the width in pixels
-     * @see #getHeight()
-     * @since 1.0
-    */
-    public int getWidth() {
-        return width;
-    }
-
     /**
      * Changes the width of the window manually.
      * @param width that will be applied to the window
@@ -62,18 +54,6 @@ public class Window {
     public void setWidth(int width) {
         frame.setSize(width, height);
         this.width = width;
-    }
-
-    private int height = 600;
-
-    /**
-     * Returns the height in pixels of the window.
-     * @return the height in pixels
-     * @see #getWidth()
-     * @since 1.0
-     */
-    public int getHeight() {
-        return height;
     }
 
     /**
@@ -104,18 +84,7 @@ public class Window {
      * @since 1.2
      */
     public void setSize(Vector2 size) {
-        frame.setSize(size.x, size.y);
-        this.width = size.x;
-        this.height = size.y;
-    }
-
-    /**
-     * Returns the windows dimensions in {@link Vector2} form.
-     * @return {@link Vector2} that contains the dimensions
-     * @since 1.2
-     */
-    public Vector2 getSize() {
-        return new Vector2(this.width, this.height);
+        setSize(size.x, size.y);
     }
 
     /**
@@ -176,32 +145,43 @@ public class Window {
 
     /**
      * Sets the state of the window.
+     * <p>As an example you could fullscreen it, minimize it, etc.</p>
      * @param state that the window will become
      * @since 1.2
      */
     public void setState(State state) {
         int s = awtValue(state);
         if (s > -1) {
-            fullScreen(false);
+            setFullScreen(false);
             frame.setExtendedState(s);
         }
         else if (s == -1) {
-            fullScreen(true);
+            setFullScreen(true);
         }
         this.state = state;
     }
 
-    private int awtValue(State state) {
-        int s = 0;
-        switch (state) {
-            case ICONIFIED -> s = 1;
-            case MAXIMIZED -> s = 6;
-            case FULL_SCREEN -> s = -1;
-        }
-        return s;
-    }
+    // FULLSCREEN IS BROKEN
 
-    private void fullScreen(boolean enabled) {
+    private boolean fullScreen = false;
+
+    /**
+     * Returns {@code true} if the window is full screened, otherwise returns {@code false}.
+     * @return {@code true} if the window is full screened, otherwise {@code false}
+     * @since 1.2
+     * @see #setFullScreen(boolean)
+     */
+    public boolean getFullScreen() { return fullScreen; }
+
+    /**
+     * This method enables / disables fullscreen mode.
+     * @param enabled if the window will go into fullscreen mode
+     * @since 1.2
+     * @see #setState(State) 
+     */
+    public void setFullScreen(boolean enabled) {
+        if ((!enabled && !fullScreen) || (enabled && fullScreen)) return;
+
         GraphicsDevice gd =  GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         if (!gd.isFullScreenSupported()) {
             System.err.println("Obsidium full-screen error: device does not support full-screen!");
@@ -210,26 +190,46 @@ public class Window {
         frame.setVisible(false);
         frame.dispose();
 
-        if (enabled) {
+        if (enabled && !fullScreen) {
             setHideBar(true);
             gd.setFullScreenWindow(frame);
+            width = frame.getWidth();
+            height = frame.getHeight();
+            if (events != null) {
+                events.simpleEvent(Type.WINDOW_FULL_SCREEN);
+            }
+            fullScreen = true;
         } else {
             setHideBar(false);
             gd.setFullScreenWindow(null);
             frame.setSize(width, height);
             setPos(getCenter().x, getCenter().y);
+            if (events != null) {
+                events.simpleEvent(Type.WINDOW_RESTORED);
+            }
+            fullScreen = false;
         }
         frame.setVisible(true);
-
-        if (events != null) {
-            events.simpleEvent(Type.WINDOW_FULL_SCREEN);
-        }
     }
 
     private boolean hideBar = false;
 
+    /**
+     * Returns {@code true} if the window's frame(the bar) is hidden, otherwise {@code false}.
+     * <p><b>Note:</b>After the window isn't full screened anymore, it will show the frame(even when you have previously disabled it).</p>
+     * @return {@code true} if the window's frame(the bar) is hidden, otherwise {@code false}.
+     * @since 1.2
+     * @see #setHideBar(boolean) 
+     */
     public boolean getHideBar() { return hideBar; }
 
+    /**
+     * Changes the visibility of the bar.
+     * <p>If {@code true}, the window's bar will become invisible, otherwise it will become visible again.</p>
+     * @param hideBar if the bar should be hidden
+     * @since 1.2
+     * @see #getHideBar()
+     */
     public void setHideBar(boolean hideBar) { frame.setUndecorated(hideBar); this.hideBar = hideBar; }
 
 
@@ -237,10 +237,9 @@ public class Window {
 
     // on creation vars
 
-    private final Frame frame;
+    private final JFrame frame;
     private final Canvas canvas;
     private final BufferStrategy bufferStrategy;
-    private Graphics2D graphics2D = null;
 
     private boolean stopProgramOnClose = false;
 
@@ -280,6 +279,7 @@ public class Window {
 
     public Events events;
     public Mouse mouse;
+    public UI ui;
 
     /**
      * Creates a new window
@@ -298,6 +298,7 @@ public class Window {
      * @param resizable
      * @param stopProgramOnClose
      * @param hideBar
+     * @param state
      * 
      * @since 1.0
      */
@@ -306,16 +307,27 @@ public class Window {
         this.width = width;
         this.height = height;
         this.stopProgramOnClose = stopProgramOnClose;
-        frame = new Frame();
+        frame = new JFrame();
         frame.setTitle(title);
 
         frame.setUndecorated(hideBar);
+
+        frame.setLayout( new GridBagLayout() );
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+
+        gbc.fill = GridBagConstraints.BOTH;
         
         canvas = new Canvas();
         canvas.setPreferredSize(new Dimension(width, height));
         canvas.setFocusable(true);
 
-        frame.add(canvas);
+        frame.add(canvas, gbc);
 
         frame.pack();
         frame.setResizable(resizable);
@@ -329,10 +341,11 @@ public class Window {
         canvas.createBufferStrategy(2);
         bufferStrategy = canvas.getBufferStrategy();
 
-        graphics2D = (Graphics2D) bufferStrategy.getDrawGraphics();
+        newFrame();
 
         events = new Events(frame, canvas);
         mouse = new Mouse(frame);
+        ui = new UI(frame, gbc, graphics2D);
     }
 
     // showing drawn image 
@@ -344,30 +357,24 @@ public class Window {
      * This is called double buffering.</p>
      * <p>If the window is closed, this method will just return without having done anything.</p>
      * <p><b>Note:</b> When you flip the screen, the old 'screen' is neither wiped nor deleted. Therefore, before flipping again, you should draw a background onto it or fill it with a color.</p>
-     * @see Draw#fill(Window, Color)
+     * @see Draw#fill(SimpleSurface, Color)
      * @since 1.0
      */
     public void flip() {
-        if (disabled)
-            return;
-        graphics2D.dispose();
-        graphics2D = null;
+        if (disabled) return;
+
+        Graphics2D g2d = (Graphics2D) bufferStrategy.getDrawGraphics();
+        g2d.drawImage(bufferedImage, null, 0, 0);
+        g2d.dispose();
         bufferStrategy.show();
-        graphics2D = (Graphics2D) bufferStrategy.getDrawGraphics();
+        width = frame.getWidth();
+        height = frame.getHeight();
+        newFrame();
+
+        if (ui != null) ui.setGraphics2D(graphics2D);
     }
 
-    // graphics 
-
-    /**
-     * <b>---advanced---</b>
-     * Returns the screen's {@code Graphics2D}.
-     * <p> Only use this if you know what you are doing </p>
-     * <p><b>Note:</b> Used for various methods in this library.</p>
-     * @return Graphics2D
-     * @since 1.0
-     */
-    public Graphics2D getGraphics2D() { return graphics2D; }
-
+    // graphics
     /**
      * <b>---advanced---</b>
      * Returns the canvas that the window uses.
@@ -378,31 +385,13 @@ public class Window {
     public Canvas getCanvas() { return canvas; }
 
     /**
-     * Blits a surface to the window.
-     * <p> This method is designed to be used for 'pasting' a surface onto a window. 
-     * For example, if you want to draw a sprite to the screen for the user to see it. </p>
-     *
-     * @param source the surface that you want to blit to the screen.
-     * @param x the x coordinate that specifies where you want the image to be blitted
-     * @param y the y coordinate that specifies where you want the image to be blitted
-     * @since 1.0
+     * Captures the current frame and paints it on a {@link Surface}.
+     * @return {@link Surface} containing the frame
+     * @since 1.2
      */
-    public void blit(Surface source, int x, int y) {
-        if (source == null) return;
-        graphics2D.drawImage(source.getBufferedImage(),null, x, y);
-    }
-
     public Surface capture() {
-        BufferedImage bI = new BufferedImage(
-                width,
-                height,
-                BufferedImage.TYPE_INT_ARGB
-        );
-        Graphics2D g2D = bI.createGraphics();
-        canvas.paint(g2D);
-        return new Surface(bI);
+        return new Surface(bufferedImage);
     }
-
 
     // close
 
@@ -419,8 +408,9 @@ public class Window {
             System.err.println("Obsidium error: trying to close window that was already closed");
         }
 
-        graphics2D.dispose();
+        if (graphics2D != null) graphics2D.dispose();
         bufferStrategy.dispose();
+        bufferedImage.flush();
         frame.dispose();
         Obsidium.closeWindow(this);
 

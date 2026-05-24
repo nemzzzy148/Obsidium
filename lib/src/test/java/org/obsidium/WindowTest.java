@@ -1,7 +1,7 @@
 package org.obsidium;
 
 import org.obsidium.event.*;
-import org.obsidium.geometry.Vector2;
+import org.obsidium.math.Vector2;
 import org.obsidium.time.Clock;
 import org.obsidium.window.State;
 import org.obsidium.window.Window;

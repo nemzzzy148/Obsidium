@@ -3,8 +3,8 @@ package org.obsidium.event;
 import java.util.Objects;
 
 /**
- * A class that represents an event
- * 
+ * A class that represents an event.
+ * <b>---advanced---</b>
  * <p> This class contains 2 field specifying the type of event it is.
  * You can access the type of event with the {@code event.type}.
  * And if the type has something to do with a key, you can access it with {@code event.key}.
@@ -12,7 +12,6 @@ import java.util.Objects;
  * Example:
  * {@code if(event.type == Key.KEYDOWN) { if(event.key == Key.A) System.out.println("Pressed A");}}
  * <p>
- * ---advanced---
  * This class should only be instantiated by Obsidium.
  * @since 1.0
  */
@@ -37,7 +36,7 @@ public class Event {
     public Key key;
 
     /**
-     * ---advanced---
+     * <b>---advanced---</b>
      * This constructor should only be instantiated by Obsidium.
      */
     public Event(Type type, Key key) {
@@ -46,7 +45,7 @@ public class Event {
     }
     
     /**
-     * ---advanced---
+     * <b>---advanced---</b>
      * This constructor should only be instantiated by Obsidium.
      */
     public Event(Type type) {

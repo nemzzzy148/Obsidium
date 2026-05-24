@@ -8,5 +8,5 @@ public enum State {
     NORMAL,
     ICONIFIED,
     MAXIMIZED,
-    FULL_SCREEN
+    FULL_SCREEN;
 }

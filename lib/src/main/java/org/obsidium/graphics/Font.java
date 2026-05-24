@@ -11,7 +11,6 @@ import java.nio.file.Path;
 
 /**
  * A class that represents a font with methods to render text with this font.
- * 
  * Available built-in font types:
  * <ul>
  *  <li>{@code SERIF = 0}</li>
@@ -20,7 +19,6 @@ import java.nio.file.Path;
  *  <li>{@code DIALOG = 3}</li>
  *  <li>{@code DIALOGINPUT = 4}</li>
  * </ul>
- * 
  * @since 1.0
  */
 public class Font {
@@ -55,21 +53,18 @@ public class Font {
 
     /**
      * Sets the size of the font.
-     * 
-     * @param size
-     * 
+     * @param size of the font
      * @since 1.0
      */
     public void setSize(float size) {
         if (size < 1) return;
         font = font.deriveFont(size);
+        this.size = size;
     }
 
     /**
      * Returns the font size.
-     * 
      * @return {@code size}
-     * 
      * @since 1.0
      */
     public float getSize() {
@@ -80,11 +75,8 @@ public class Font {
 
     /**
      * Returns the path of the font.
-     * 
      * <p> If this is a custom font, it will return the path. Otherwise, it will return {@code NO_PATH}.</p>
-     * 
      * @return {@code path}
-     * 
      * @since 1.0
      */
     public String getPath() {
@@ -95,7 +87,6 @@ public class Font {
 
     /**
      * Returns the type of font.
-     * 
      * Available types:
      * <ul>
      *  <li>{@code SERIF = 0}</li>
@@ -104,11 +95,8 @@ public class Font {
      *  <li>{@code DIALOG = 3}</li>
      *  <li>{@code DIALOGINPUT = 4}</li>
      * </ul>
-     * 
      * <p> This will return a valid type {@code 0 - 4} if it isn't a custom font, otherwise it will return 1.</p>
-     * 
      * @return {@code type}
-     * 
      * @since 1.0
      */
     public int getType() {
@@ -118,10 +106,8 @@ public class Font {
     /**
      * Creates a font of a .ttf file at the given path.
      * For built-in fonts use {@link #Font(int, float)}
-     * 
      * @param path of the .ttf file
      * @param size of the font
-     * 
      * @since 1.0
      */
     public Font(String path, float size) {
@@ -136,6 +122,7 @@ public class Font {
             System.err.println("Obsidium loading font error: " + e.getMessage());
         }
 
+        assert this.font != null;
         this.font = this.font.deriveFont(size);
     }
 
@@ -149,10 +136,8 @@ public class Font {
      *  <li>{@code DIALOG = 3}</li>
      *  <li>{@code DIALOGINPUT = 4}</li>
      * </ul>
-     * 
      * @param type of the font
      * @param size of the font
-     * 
      * @since 1.0
      */
     public Font(int type, float size) {
@@ -173,7 +158,6 @@ public class Font {
 
     /**
      * Renders the font on a new surface.
-     * 
      * <p> The width and height will automatically be calculated. </p>
      * @param text that will be rendered
      * @param color of the text
@@ -197,13 +181,11 @@ public class Font {
 
     /**
      * Renders the font on this surface.
-     * 
      * @param surface that the text will be rendered too
      * @param x the x-coordinate where the text will be rendered to, relative to the surface
      * @param y the y-coordinate where the text will be rendered to, relative to the surface
      * @param text the text that will be rendered
      * @param color the color of the text
-     * 
      * @since 1.0
      */
     public void render(Surface surface, int x, int y, String text, Color color) {
@@ -212,13 +194,11 @@ public class Font {
 
     /**
      * Renders the font on this window.
-     * 
      * @param window that the text will be rendered too
      * @param x the x-coordinate where the text will be rendered to, relative to the window
      * @param y the y-coordinate where the text will be rendered to, relative to the window
      * @param text the text that will be rendered
      * @param color the color of the text
-     *
      * @since 1.0
      */
     public void render(Window window, int x, int y, String text, Color color) {

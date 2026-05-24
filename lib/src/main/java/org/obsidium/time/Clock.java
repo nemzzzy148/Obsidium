@@ -35,7 +35,7 @@ public class Clock {
     /**
      * Synchronizes the games loop to a specific frame rate that you set.
      * 
-     * @param targetFPS that it tries to approtch
+     * @param targetFPS that it tries to approach
      * 
      * @return the amount of milliseconds this frame took to complete
      * 

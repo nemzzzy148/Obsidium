@@ -2,7 +2,6 @@ package org.obsidium.event;
 
 /** 
  * An enumerator that contains all the possible types of events.
- * 
  * @since 1.0
  */
 public enum Type {
@@ -20,6 +19,9 @@ public enum Type {
     WINDOW_MINIMIZED,
     WINDOW_SHOWN,
     WINDOW_MOVED,
+    /**
+     * Activates when a window returns to its normal state.
+     */
     WINDOW_RESTORED,
     WINDOW_FOCUSED,
     WINDOW_UNFOCUSED,

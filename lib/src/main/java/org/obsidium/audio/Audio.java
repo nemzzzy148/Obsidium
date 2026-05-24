@@ -4,15 +4,12 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
+import java.util.Objects;
 
 /**
  * A class for playing .wav audio files.
- * 
  * <p> To use the functionality of this audio class, it needs to be instantiated.</p>
- * 
  * @see #Audio(String path)
- * 
- * 
  * @since 1.0
  */
 public class Audio {
@@ -21,13 +18,11 @@ public class Audio {
 
     /**
      * The constructor of the audio class.
-     * 
      * @param path of the .wav audio file that you want to load in
-     * 
      * @since 1.0
      */
     public Audio(String path) {
-        try (AudioInputStream audioStream = AudioSystem.getAudioInputStream(Audio.class.getClassLoader().getResource(path))) {
+        try (AudioInputStream audioStream = AudioSystem.getAudioInputStream(Objects.requireNonNull(Audio.class.getClassLoader().getResource(path)))) {
             clip = AudioSystem.getClip();
             clip.open(audioStream);
         }
@@ -38,7 +33,6 @@ public class Audio {
 
     /**
      * @return {@code true} if the audio file is loaded in.
-     * 
      * @since 1.0
      */
     public boolean isLoaded() {
@@ -47,7 +41,6 @@ public class Audio {
 
     /**
      * @return {@code true} if the audio file is playing.
-     * 
      * @since 1.0
      */
     public boolean isPlaying() {
@@ -56,13 +49,10 @@ public class Audio {
 
     /**
      * Plays and loops the audio.
-     * 
      * <p> If the audio isn't loaded in, it will do nothing.
      * Otherwise, it will loop how many times you have specified it to.
      * If the argument is {@code -1}, it will loop indefinitely.</p>
-     * 
      * @param loop loops the audio a specified set of times, if {@code -1} it will loop indefinitely
-     * 
      * @since 1.0
      */
     public void play(int loop) {
@@ -73,10 +63,8 @@ public class Audio {
 
     /**
      * Plays the audio.
-     * 
      * <p> If the audio isn't loaded in, it will do nothing.
      * Otherwise, it will begin playing 1 time.</p>
-     * 
      * @since 1.0
      */
     public void play() {
@@ -87,7 +75,6 @@ public class Audio {
 
     /**
      * Toggles between pausing/resuming.
-     * 
      * @since 1.0
      */
     public void toggle() {
@@ -101,12 +88,9 @@ public class Audio {
 
     /**
      * Stops the music that is currently playing.
-     * 
      * <p> If {@link #resume()} is called after the audio has stopped, it will just continue playing.</p>
-     * 
      * <p>If the audio has not been loaded in, it will do nothing.
      * You can check if the audio has been loaded in with this {@link #isLoaded()} method. </p>
-     * 
      * @since 1.0
      */
     public void stop() {
@@ -116,10 +100,8 @@ public class Audio {
 
     /**
      * Pauses the audio that is currently playing.
-     * 
      * <p>If the song has not been loaded in, it will do nothing.
      * You can check if the audio has been loaded in with this {@link #isLoaded()} method. </p>
-     * 
      * @since 1.0
      */
     public void pause() {
@@ -128,7 +110,6 @@ public class Audio {
 
     /**
      * Resumes the audio that is currently playing.
-     * 
      * <p>If the audio has not been loaded in, it will do nothing.
      * You can check if the audio has been loaded in with this {@link #isLoaded()} method. </p>
      */
@@ -139,12 +120,9 @@ public class Audio {
 
     /**
      * Sets the volume of the audio.
-     * 
      * <p>If the audio has not been loaded in, it will do nothing.
      * You can check if the audio has been loaded in with this {@link #isLoaded()} method. </p>
-     * 
      * @param volume a value between 0 - 1
-     * 
      * @since 1.0
      */
     public void setVolume(float volume) {
@@ -162,11 +140,8 @@ public class Audio {
 
     /**
      * Returns the volume of the audio.
-     * 
      * <p> The audio will be between 0 and 1.
-     * 
      * @return volume
-     * 
      * @since 1.0
      */
     public float getVolume() {
@@ -175,7 +150,6 @@ public class Audio {
 
     /**
      * Closes and releases the memory of the audio.
-     * 
      * @since 1.0
      */
     public void close() {

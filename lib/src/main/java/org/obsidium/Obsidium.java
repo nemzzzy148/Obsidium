@@ -5,7 +5,7 @@ import java.awt.MouseInfo;
 import java.awt.Toolkit;
 import java.util.ArrayList;
 
-import org.obsidium.geometry.Vector2;
+import org.obsidium.math.Vector2;
 import org.obsidium.window.State;
 import org.obsidium.window.Window;
 
@@ -20,8 +20,8 @@ public class Obsidium {
     private static boolean first = true;
 
     // default
-    private static final int WIDTH = 800;
-    private static final int HEIGHT = 600;
+    public static final int WIDTH = 800;
+    public static final int HEIGHT = 600;
 
     private static final String TITLE = "Obsidium game";
 

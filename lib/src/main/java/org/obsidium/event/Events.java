@@ -1,9 +1,11 @@
 package org.obsidium.event;
 
+import javax.swing.*;
 import java.awt.Canvas;
 import java.awt.Frame;
 import java.awt.event.*;
 import java.util.LinkedList;
+import java.util.List;
 
 /** 
  * A class that manages the events of windows.
@@ -11,14 +13,14 @@ import java.util.LinkedList;
  * This class should only be instantiated by Obsidium.
  */
 public class Events {
-    private final Frame frame;
+    private final JFrame frame;
     private final Canvas canvas;
 
     /**
      * <b>---advanced---</b>
      * This constructor should only be instantiated by Obsidium.
      */
-    public Events(Frame frame, Canvas canvas) {
+    public Events(JFrame frame, Canvas canvas) {
         this.frame = frame;
         this.canvas = canvas;
 
@@ -261,7 +263,7 @@ public class Events {
     */
     public Event[] get() {
         synchronized (lock) {
-            LinkedList<Event> allEvents = new LinkedList<>();
+            List<Event> allEvents = new LinkedList<>() ;
             allEvents.addAll(events);
             allEvents.addAll(pressedKeys);
             allEvents.addAll(releasedKeys);
