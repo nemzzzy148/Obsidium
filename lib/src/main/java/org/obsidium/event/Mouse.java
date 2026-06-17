@@ -3,23 +3,26 @@ package org.obsidium.event;
 import java.awt.MouseInfo;
 
 import org.obsidium.math.Vector2;
+import org.obsidium.window.Window;
 
 import javax.swing.*;
 
 /**
  * <b>---advanced---</b>
  * This class should only be instantiated by Obsidium.
+ * @since 1.0
  */
 public class Mouse {
-    private final JFrame frame;
+    private final Window window;
     
     /**
      * <b>---advanced---</b>
      * This constructor should only be instantiated by Obsidium.
-     * @param frame used for mouse functionality
+     * @param window used for mouse functionality
+     * @since 1.2
      */
-    public Mouse(JFrame frame) {
-        this.frame = frame;
+    public Mouse(Window window) {
+        this.window = window;
     }
 
     /**
@@ -34,16 +37,20 @@ public class Mouse {
     /**
      * Returns the individual x-coordinate of the mouse relative to the screen.
      * @return the x-coordinate of the mouse
+     * @since 1.0
      */
     public int getPosX() {
-        return  MouseInfo.getPointerInfo().getLocation().x - frame.getLocationOnScreen().x;
+        if (!window.getCanvas().isShowing()) return 0;
+        return  MouseInfo.getPointerInfo().getLocation().x - window.getCanvas().getLocationOnScreen().x;
     }
 
     /**
      * Returns the individual y-coordinate of the mouse relative to the screen.
      * @return the y-coordinate of the mouse
+     * @since 1.0
      */
     public int getPosY() {
-        return MouseInfo.getPointerInfo().getLocation().y - frame.getLocationOnScreen().y;
+        if (!window.getCanvas().isShowing()) return 0;
+        return MouseInfo.getPointerInfo().getLocation().y - window.getCanvas().getLocationOnScreen().y;
     }
 }

@@ -6,14 +6,76 @@ package org.obsidium.graphics;
  */
 public class Color {
     // colors
-
     public static final Color RED = new Color(255, 0, 0);
     public static final Color GREEN = new Color(0, 255, 0);
     public static final Color BLUE = new Color(0, 0, 255);
 
     public static final Color WHITE = new Color(255, 255, 255);
-    public static final Color BLACK = new Color(0 ,0 ,0);
+    public static final Color BLACK = new Color(0, 0, 0);
     public static final Color TRANSPARENT = new Color(0, 0, 0, 0);
+
+    // Grays
+    public static final Color LIGHT_GRAY = new Color(211, 211, 211);
+    public static final Color GRAY = new Color(128, 128, 128);
+    public static final Color DARK_GRAY = new Color(64, 64, 64);
+    public static final Color DEEP_CHARCOAL = new Color(30, 30, 30, 153);
+
+    // Basic Colors
+    public static final Color YELLOW = new Color(255, 255, 0);
+    public static final Color CYAN = new Color(0, 255, 255);
+    public static final Color MAGENTA = new Color(255, 0, 255);
+    public static final Color ORANGE = new Color(255, 165, 0);
+    public static final Color PINK = new Color(255, 192, 203);
+    public static final Color PURPLE = new Color(128, 0, 128);
+    public static final Color BROWN = new Color(165, 42, 42);
+
+    // Dark Variants
+    public static final Color DARK_RED = new Color(139, 0, 0);
+    public static final Color DARK_GREEN = new Color(0, 100, 0);
+    public static final Color DARK_BLUE = new Color(0, 0, 139);
+    public static final Color DARK_ORANGE = new Color(255, 140, 0);
+
+    // Light Variants
+    public static final Color LIGHT_RED = new Color(255, 102, 102);
+    public static final Color LIGHT_GREEN = new Color(144, 238, 144);
+    public static final Color LIGHT_BLUE = new Color(173, 216, 230);
+    public static final Color LIGHT_YELLOW = new Color(255, 255, 224);
+
+    // Nature Colors
+    public static final Color LIME = new Color(50, 205, 50);
+    public static final Color OLIVE = new Color(128, 128, 0);
+    public static final Color TEAL = new Color(0, 128, 128);
+    public static final Color NAVY = new Color(0, 0, 128);
+    public static final Color AQUA = new Color(127, 255, 212);
+    public static final Color FOREST_GREEN = new Color(34, 139, 34);
+
+    // Earth Tones
+    public static final Color TAN = new Color(210, 180, 140);
+    public static final Color BEIGE = new Color(245, 245, 220);
+    public static final Color KHAKI = new Color(240, 230, 140);
+    public static final Color CHOCOLATE = new Color(210, 105, 30);
+
+    // Metallic
+    public static final Color SILVER = new Color(192, 192, 192);
+    public static final Color GOLD = new Color(255, 215, 0);
+    public static final Color BRONZE = new Color(205, 127, 50);
+
+    // Pastels
+    public static final Color LAVENDER = new Color(230, 230, 250);
+    public static final Color PEACH = new Color(255, 218, 185);
+    public static final Color MINT = new Color(189, 252, 201);
+    public static final Color SKY_BLUE = new Color(135, 206, 235);
+
+    // Vibrant Colors
+    public static final Color HOT_PINK = new Color(255, 105, 180);
+    public static final Color CRIMSON = new Color(220, 20, 60);
+    public static final Color INDIGO = new Color(75, 0, 130);
+    public static final Color VIOLET = new Color(238, 130, 238);
+    public static final Color TURQUOISE = new Color(64, 224, 208);
+
+    //theme colors
+    public static final Color WINDOWS_BLUE     = new Color(0, 120, 215);
+
 
     /**
      * The value that represents the red component of this color.

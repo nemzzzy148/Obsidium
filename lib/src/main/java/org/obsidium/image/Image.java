@@ -5,9 +5,7 @@ import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
 
-import org.obsidium.graphics.SimpleSurface;
-import org.obsidium.graphics.Surface;
-import org.obsidium.window.Window;
+import org.obsidium.graphics.surface.Surface;
 
 /**
  * A class designed to handle image functionality.
@@ -54,13 +52,13 @@ public class Image {
     }
 
     /**
-     * Saves the content of the surface / window that is currently being displayed.
+     * Saves the content of the surface that is currently being displayed.
      * @param surface that needs to be saved
      * @param format that the image uses
      * @param path where the image will be saved + the name
      * @since 1.2
      */
-    public static void save(SimpleSurface surface, Format format, String path) {
+    public static void save(Surface surface, Format format, String path) {
         try {
             Path filePath = Path.of(path);
             boolean result = ImageIO.write(surface.getBufferedImage(), formatToExtension(format), filePath.toFile());

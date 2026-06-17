@@ -22,6 +22,22 @@ public class Vector2 {
         this.y = y;
     }
 
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
     /**
      * This method adds the 2 specified vectors and returns the result.
      * 
@@ -60,6 +76,18 @@ public class Vector2 {
     public Vector2 times(Vector2 other) {
         return new Vector2(x * other.x, y * other.y);
     }
+
+    /**
+     * Divides this vectors coordinates, by the other vectors coordinates.
+     * <pre>{@code
+     * newX = this.x / other.x
+     * newY = this.x / other.y
+     * }</pre>
+     * @param other the denominator
+     * @return the quotient vector
+     * @since 1.2
+     */
+    public Vector2 divide(Vector2 other) { return new Vector2(x / other.x, y / other.y); }
 
     /**
      * Computes the dot product of this vector and the specified vector.

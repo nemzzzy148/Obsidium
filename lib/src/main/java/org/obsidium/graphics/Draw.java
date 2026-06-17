@@ -2,13 +2,14 @@ package org.obsidium.graphics;
 
 import java.awt.*;
 
-import org.obsidium.window.Window;
+import org.obsidium.graphics.shape.Shape;
+import org.obsidium.graphics.surface.SimpleSurface;
 
 /**
  * A class with only static members that is used for drawing shapes to the window or a surface.
  * @since 1.0
  */
-public class Draw {
+public final class Draw {
     /**
      * Fills the window / surface with a specified color.
      * @param surface where will be drawn to
@@ -18,7 +19,7 @@ public class Draw {
     public static void fill(SimpleSurface surface, Color color) {
         Graphics2D graphics2D = surface.getGraphics2D();
         graphics2D.setColor( Color.awtColor(color) );
-        graphics2D.fillRect(0, 0, surface.width, surface.height);
+        graphics2D.fillRect(0, 0, surface.getWidth(), surface.getHeight());
     }
 
     /**
@@ -50,8 +51,30 @@ public class Draw {
      */
     public static void rectOutline(SimpleSurface surface, int x, int y, int width, int height, float thickness, Color color) {
         Graphics2D g2d = surface.getGraphics2D();
+        g2d.setStroke( new BasicStroke(thickness) );
         g2d.setColor( Color.awtColor(color) );
         g2d.drawRect(x, y, width, height);
+    }
+
+    public static void rectRounded(SimpleSurface surface,  int x, int y, int width, int height, int arcWidth, int arcHeight, Color color) {
+        Graphics2D g2d = surface.getGraphics2D();
+        g2d.setColor( Color.awtColor(color) );
+        g2d.fillRoundRect(x, y, width, height, arcWidth, arcHeight);
+    }
+
+    public static void rectRoundedOutline(SimpleSurface surface,  int x, int y, int width, int height, int arcWidth, int arcHeight,  float thickness, Color color) {
+        Graphics2D g2d = surface.getGraphics2D();
+        g2d.setStroke( new BasicStroke(thickness) );
+        g2d.setColor( Color.awtColor(color) );
+        g2d.drawRoundRect(x, y, width, height, arcWidth, arcHeight);
+    }
+
+    public static void rectRounded(SimpleSurface surface,  int x, int y, int width, int height, int radius, Color color) {
+        rectRounded(surface, x, y, width, height, radius, radius, color);
+    }
+
+    public static void rectRoundedOutline(SimpleSurface surface,  int x, int y, int width, int height, int radius, float thickness, Color color) {
+        rectRoundedOutline(surface, x, y, width, height, radius, radius, thickness, color);
     }
 
     /**
@@ -67,6 +90,23 @@ public class Draw {
         Graphics2D g2d = surface.getGraphics2D();
         g2d.setColor( Color.awtColor(color) );
         g2d.fillOval(x, y, r, r);
+    }
+
+    /**
+     * Draws an outline circle on the surface / window.
+     * @param surface where will be drawn to
+     * @param x the x-coordinate, relative to the window, where you want to draw the circle's outline
+     * @param y the y-coordinate, relative to the window, where you want to draw the circle's outline
+     * @param r the radius of the circle's outline
+     * @param thickness the thickness of the outline
+     * @param color the color of the circle's outline
+     * @since 1.2
+     */
+    public static void circleOutline(SimpleSurface surface, int x, int y, int r, float thickness, Color color) {
+        Graphics2D g2d = surface.getGraphics2D();
+        g2d.setStroke( new BasicStroke(thickness) );
+        g2d.setColor( Color.awtColor(color) );
+        g2d.drawOval(x, y, r, r);
     }
 
     /**
@@ -86,6 +126,24 @@ public class Draw {
     }
 
     /**
+     * Draws an outline of an oval onto the surface / window.
+     * @param surface where is being drawn to
+     * @param x the x-coordinate, relative to the window, where you want to draw the ovals outline
+     * @param y the y-coordinate, relative to the window, where you want to draw the ovals outline
+     * @param width the width of the ovals outline
+     * @param height the height of the ovals outline
+     * @param thickness the thickness of the outline
+     * @param color the color of the ovals outline
+     * @since 1.2
+     */
+    public static void ovalOutline(SimpleSurface surface, int x, int y, int width, int height, float thickness, Color color) {
+        Graphics2D g2d = surface.getGraphics2D();
+        g2d.setStroke( new BasicStroke(thickness) );
+        g2d.setColor( Color.awtColor(color) );
+        g2d.drawOval(x, y, width, height);
+    }
+
+    /**
      * Draws a filled in polygon on the surface / window.
      * <p> The amount of x-coordinates of the points have to match to amount of y-coordinates. </p>
      * @param surface where will be drawn to
@@ -98,6 +156,23 @@ public class Draw {
         Graphics2D g2d = surface.getGraphics2D();
         g2d.setColor( Color.awtColor(color));
         g2d.fillPolygon(xPoints, yPoints, xPoints.length);
+    }
+
+    /**
+     * Draws the outline of a polygon on the surface / window.
+     * <p> The amount of x-coordinates of the points have to match to amount of y-coordinates. </p>
+     * @param surface where will be drawn to
+     * @param xPoints the x-coordinates of the points where the x-coordinates are relative to the surface
+     * @param yPoints the y-coordinates of the points where the y-coordinates are relative to the surface
+     * @param thickness the thickness of the outline
+     * @param color the color of the polygons outline
+     * @since 1.2
+     */
+    public static void polygonOutline(SimpleSurface surface, int[] xPoints, int[] yPoints, float thickness, Color color) {
+        Graphics2D g2d = surface.getGraphics2D();
+        g2d.setStroke( new BasicStroke(thickness) );
+        g2d.setColor( Color.awtColor(color) );
+        g2d.drawPolyline(xPoints, yPoints, xPoints.length);
     }
 
     /**
@@ -130,5 +205,9 @@ public class Draw {
         g2d.setStroke(new BasicStroke(thickness));
         g2d.setColor( Color.awtColor(color) );
         g2d.drawLine(x1, y1, x2, y2);
+    }
+
+    public static void drawShape(SimpleSurface surface, Shape shape, int x, int y) {
+        shape.draw(surface, x, y);
     }
 }

@@ -1,5 +1,8 @@
 package org.obsidium.event;
 
+import org.obsidium.math.Vector2;
+import org.obsidium.window.Window;
+
 import javax.swing.*;
 import java.awt.Canvas;
 import java.awt.Frame;
@@ -13,18 +16,15 @@ import java.util.List;
  * This class should only be instantiated by Obsidium.
  */
 public class Events {
-    private final JFrame frame;
-    private final Canvas canvas;
+    private final Window window;
 
     /**
      * <b>---advanced---</b>
      * This constructor should only be instantiated by Obsidium.
      */
-    public Events(JFrame frame, Canvas canvas) {
-        this.frame = frame;
-        this.canvas = canvas;
-
-        addEventListener(this.frame, this.canvas);
+    public Events(Window window) {
+        this.window = window;
+        addEventListener(window.getFrame(), window.getCanvas());
     }
 
     // events this frame
@@ -63,6 +63,15 @@ public class Events {
                 if (!isMax && wasMax) {
                     simpleEvent(Type.WINDOW_RESTORED);
                 }
+            }
+        });
+
+        //ui
+
+        frame.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
             }
         });
 
@@ -123,12 +132,12 @@ public class Events {
         canvas.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                simpleEvent( Type.MOUSE_DOWN);
+                events.add( new Event(Type.MOUSE_DOWN, window.mouse.getPos()) );
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                simpleEvent( Type.MOUSE_UP);
+                events.add( new Event(Type.MOUSE_UP, window.mouse.getPos()) );
             }
         });
     }
@@ -261,7 +270,7 @@ public class Events {
      * @return an array of all the {@link Event}
      * @since 1.0
     */
-    public Event[] get() {
+    public List<Event> get() {
         synchronized (lock) {
             List<Event> allEvents = new LinkedList<>() ;
             allEvents.addAll(events);
@@ -269,13 +278,14 @@ public class Events {
             allEvents.addAll(releasedKeys);
             allEvents.addAll(keys);
 
-            Event[] e = allEvents.toArray(Event[]::new);
+            // mouse
+            allEvents.add( new Event(Type.MOUSE, window.mouse.getPos()) );
 
             events.clear();
             releasedKeys.clear();
             pressedKeys.clear();
 
-            return e;
+            return allEvents;
         }
     }
 

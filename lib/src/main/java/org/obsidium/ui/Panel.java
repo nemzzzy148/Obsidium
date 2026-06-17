@@ -1,103 +1,60 @@
 package org.obsidium.ui;
 
-import org.obsidium.math.Vector2;
+import org.obsidium.graphics.Draw;
 import org.obsidium.graphics.Color;
+import org.obsidium.math.Vector2;
 import org.obsidium.ui.components.Component;
 import org.obsidium.window.Window;
 
-import javax.swing.*;
-import java.awt.*;
-
-public class Panel {
-    private String name = "Panel";
-
-    public String getName() {
-        return name;
-    }
-    void setName(String name) {
-        this.name = name;
-    }
-
+public class Panel extends Component {
     private Color color;
+    private Window window;
+
+    public Panel(int width, int height, Color color) {
+        init(null, width, height, color);
+    }
+
+    public Panel(Window window, Color color) {
+        init(window, window.getWidth(), window.getHeight(), color);
+    }
+
+    public Panel(Window window) {
+        init(window, window.getWidth(), window.getHeight(), Color.DEEP_CHARCOAL);
+    }
+
+    private void init(Window window, int width, int height, Color color) {
+        this.window = window;
+        this.color = color;
+        this.width = width;
+        this.height = height;
+    }
 
     public void setColor(Color color) {
-        jPanel.setBackground( Color.awtColor(color) );
         this.color = color;
     }
-
     public Color getColor() {
         return color;
     }
 
-    private int width = 800;
-
-    public int getWidth() {
-        return width;
+    public Window getWindow() {
+        return window;
+    }
+    public void setWindow(Window window) {
+        this.window = window;
+        setSize(window.getSize());
     }
 
-    public void setWidth(int width) {
-        jPanel.setSize(width, height);
-        this.width = width;
+    @Override
+    public void redrawGraphics() {
+        Draw.fill(surfaceCache, color);
     }
 
-    private int height = 600;
+    @Override
+    public void update(Vector2 mousePosition, boolean mouseUp, boolean mouseDown) {
+        if (width != window.getWidth() || height != window.getHeight()) {
+            setSize(window.getWidth(), window.getHeight());
+        }
 
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        jPanel.setSize(width, height);
-        this.height = height;
-    }
-
-    public Vector2 getSize() {
-        return new Vector2(width, height);
-    }
-    public void setSize(int width, int height) {
-        this.width = width;
-        this.height = height;
-    }
-
-    private JPanel jPanel;
-
-    public JPanel getjPanel() {
-        return jPanel;
-    }
-
-    public Panel(String name, int width, int height, Color color) {
-        init(name, width, height, color);
-    }
-
-    public Panel(String name, Window window, Color color) {
-        init(name, window.getWidth(), window.getHeight(), color);
-    }
-
-    public Panel(String name, Color color) {
-        init(name, width, height, color);
-    }
-
-    public Panel(Window window) {
-        init(name, window.getWidth(), window.getHeight(), Color.TRANSPARENT);
-    }
-
-    public Panel() {
-        init(name, width, height, Color.TRANSPARENT);
-    }
-
-    private void init(String name, int width, int height, Color color) {
-        this.name = name;
-        this.color = color;
-        this.width = width;
-        this.height = height;
-        jPanel = new JPanel();
-        jPanel.setBackground( Color.awtColor(color) );
-        jPanel.setPreferredSize( new Dimension(width, height));
-    }
-
-    // component functionality
-
-    public void add(Component component) {
-        jPanel.add(component.getJComponent());
+        processMouse(mousePosition, mouseUp, mouseDown);
     }
 }

@@ -1,6 +1,7 @@
 package org.obsidium.graphics;
 
-import org.obsidium.window.Window;
+import org.obsidium.graphics.surface.SimpleSurface;
+import org.obsidium.graphics.surface.Surface;
 
 import java.awt.Canvas;
 import java.awt.FontMetrics;
@@ -145,7 +146,6 @@ public class Font {
         this.size  = size < 1 ? 1 : size;
 
         String fontName = switch(this.type) {
-            case SERIF -> java.awt.Font.SERIF;
             case SANS_SERIF -> java.awt.Font.SANS_SERIF;
             case MONOSPACED -> java.awt.Font.MONOSPACED;
             case DIALOG -> java.awt.Font.DIALOG;
@@ -174,13 +174,13 @@ public class Font {
 
         Surface surface = new Surface(Math.max(1, width), Math.max(1, height));
 
-        renderOntoGraphics2D(surface.getGraphics2D(), 0, ascent, text, color);
+        render(surface, 0, ascent, text, color);
 
         return surface;
     }
 
     /**
-     * Renders the font on this surface.
+     * Renders the font on this surface / window.
      * @param surface that the text will be rendered too
      * @param x the x-coordinate where the text will be rendered to, relative to the surface
      * @param y the y-coordinate where the text will be rendered to, relative to the surface
@@ -188,27 +188,11 @@ public class Font {
      * @param color the color of the text
      * @since 1.0
      */
-    public void render(Surface surface, int x, int y, String text, Color color) {
-        renderOntoGraphics2D(surface.getGraphics2D(), x, y, text, color);
-    }
+    public void render(SimpleSurface surface, int x, int y, String text, Color color) {
+        Graphics2D g2d = surface.getGraphics2D();
+        g2d.setFont(font);
+        g2d.setColor(Color.awtColor(color));
 
-    /**
-     * Renders the font on this window.
-     * @param window that the text will be rendered too
-     * @param x the x-coordinate where the text will be rendered to, relative to the window
-     * @param y the y-coordinate where the text will be rendered to, relative to the window
-     * @param text the text that will be rendered
-     * @param color the color of the text
-     * @since 1.0
-     */
-    public void render(Window window, int x, int y, String text, Color color) {
-        renderOntoGraphics2D(window.getGraphics2D(), x, y, text, color);
-    }
-
-    private void renderOntoGraphics2D(Graphics2D graphics2D, int x, int y, String text, Color color) {
-        graphics2D.setFont(font);
-        graphics2D.setColor(Color.awtColor(color));
-
-        graphics2D.drawString(text, x, y);
+        g2d.drawString(text, x, y);
     }
 }

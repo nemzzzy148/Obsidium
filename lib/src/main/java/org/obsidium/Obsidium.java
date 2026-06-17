@@ -20,9 +20,15 @@ public class Obsidium {
     private static boolean first = true;
 
     // default
+    /** The default width of an initialized window.
+     * @since 1.0 */
     public static final int WIDTH = 800;
+    /** The default height of an initialized window.
+     * @since 1.0 */
     public static final int HEIGHT = 600;
 
+    /** The default title of an initialized window.
+     * @since 1.0 */
     private static final String TITLE = "Obsidium game";
 
     // main reference constructor

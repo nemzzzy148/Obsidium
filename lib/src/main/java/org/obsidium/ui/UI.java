@@ -1,53 +1,84 @@
 package org.obsidium.ui;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.ArrayList;
+import org.obsidium.event.Event;
+import org.obsidium.event.Type;
+import org.obsidium.graphics.surface.SimpleSurface;
+import org.obsidium.math.Vector2;
+import org.obsidium.ui.components.BaseComponent;
+import org.obsidium.ui.components.Component;
+import org.obsidium.window.Window;
 
-public class UI {
-    private JFrame frame;
-    private GridBagConstraints gbc;
-    private Graphics2D graphics2D;
+import java.util.List;
 
-    public void setGraphics2D(Graphics2D graphics2D) {
-        this.graphics2D = graphics2D;
-    }
+public class UI extends BaseComponent {
+    private Window window;
 
-    public UI(JFrame frame, GridBagConstraints gbc, Graphics2D graphics2D) {
-        this.frame = frame;
-        this.gbc = gbc;
-        this.graphics2D = graphics2D;
-    }
-
-    // on runtime
-    private ArrayList<Panel> panels = new ArrayList<Panel>();
-
-    public void addPanel(Panel panel) {
-        frame.add(panel.getjPanel(), gbc);
-        panels.add(panel);
-    }
-
-    public Panel getPanel(String name) {
-        for (Panel p : panels) {
-            if (p.getName().equals(name)) return p;
-        }
-        return null;
-    }
-
-    public void removePanel(String name) {
-        panels.remove(getPanel(name));
-    }
-
-    public void removePanel(Panel panel) {
-        panels.remove(panel);
+    public UI(Window window) {
+        this.window = window;
+        this.width = window.getWidth();
+        this.height = window.getHeight();
     }
 
     public void render() {
-        for (Panel p : panels) {
-            JPanel jp = p.getjPanel();
-            jp.setSize(jp.getPreferredSize());
-            jp.doLayout();
-            jp.printAll(graphics2D);
+        if (window != null) {
+            this.width = window.getWidth();
+            this.height = window.getHeight();
         }
+        else {
+            return;
+        }
+
+        if (!enabled || !visible) return;
+
+        children.forEach(c -> c.render(window));
+    }
+
+    public void processEvents(List<Event> events) {
+        if (!enabled) return;
+
+        boolean mouseDown = false;
+        boolean mouseUp = false;
+        Vector2 mousePos = null;
+
+        for (Event e : events) {
+            if (e.type == Type.MOUSE_DOWN) {
+                mouseDown = true;
+            }
+            if (e.type == Type.MOUSE_UP) {
+                mouseUp = true;
+            }
+            if (e.type == Type.MOUSE) {
+                mousePos = e.position;
+            }
+            if (mouseDown && mouseUp && mousePos == null) break;
+        }
+
+        if (mousePos != null) {
+            for (Component c : children) {
+                c.update(mousePos, mouseUp, mouseDown);
+            }
+        }
+    }
+
+    @Override
+    public void render(SimpleSurface surface) {
+        if (!enabled || !visible) return;
+
+        children.forEach(c -> c.render(surface));
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    @Override
+    public int getHeight() {
+        return height;
+    }
+
+    @Override
+    public int getWidth() {
+        return width;
     }
 }

@@ -34,14 +34,15 @@ public class Clock {
 
     /**
      * Synchronizes the games loop to a specific frame rate that you set.
-     * 
+     * <p>If the {@code targetFPS} is equal or smaller than 0, then the framerate will be uncapped.</p>
      * @param targetFPS that it tries to approach
-     * 
      * @return the amount of milliseconds this frame took to complete
-     * 
      * @since 1.0
+     * @see #tick()
      */
     public double tick(double targetFPS) {
+        if (targetFPS <= 0) return tick();
+
         double targetNanos = 1_000_000_000.0 / targetFPS;
 
         while (System.nanoTime() - lastTime < targetNanos) {
@@ -53,9 +54,7 @@ public class Clock {
 
     /**
      * Returns the current frames per second.
-     * 
      * @return the current number of frames per second
-     * 
      * @since 1.0
      */
     public double getFPS() {
@@ -64,9 +63,7 @@ public class Clock {
 
     /**
      * Returns the time taken to complete the last frame.
-     * 
      * @return the duration of the last frame in milliseconds.
-     * 
      * @since 1.0
      */
     public double getDeltaTime() {

@@ -9,11 +9,7 @@ public class MinimalTest {
         Window window = Obsidium.createWindow(800,800, "hii", 0, 0);
 
         while (true) {
-            for (Event e : window.events.get()) {
-                if (e.type == Type.QUIT) {
-                    window.quit();
-                }
-            }
+            if (window.events.get().contains(new Event(Type.QUIT))) window.quit();
         }
     }
 }

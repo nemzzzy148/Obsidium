@@ -1,5 +1,7 @@
 package org.obsidium.event;
 
+import org.obsidium.math.Vector2;
+
 import java.util.Objects;
 
 /**
@@ -35,6 +37,8 @@ public class Event {
      */
     public Key key;
 
+    public Vector2 position;
+
     /**
      * <b>---advanced---</b>
      * This constructor should only be instantiated by Obsidium.
@@ -42,6 +46,16 @@ public class Event {
     public Event(Type type, Key key) {
         this.type = type;
         this.key = key;
+    }
+
+    /**
+     * <b>---advanced---</b>
+     * This constructor should only be instantiated by Obsidium.
+     * @since 1.2
+     */
+    public Event(Type type, Vector2 position) {
+        this.type = type;
+        this.position = position;
     }
     
     /**

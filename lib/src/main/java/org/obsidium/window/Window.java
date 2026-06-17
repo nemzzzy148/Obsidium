@@ -1,20 +1,20 @@
 package org.obsidium.window;
 
-import java.awt.*;
-import java.awt.image.BufferStrategy;
-
 import org.obsidium.Obsidium;
 import org.obsidium.event.Events;
 import org.obsidium.event.Mouse;
 import org.obsidium.event.Type;
-import org.obsidium.graphics.SimpleSurface;
-import org.obsidium.math.Vector2;
 import org.obsidium.graphics.Color;
 import org.obsidium.graphics.Draw;
-import org.obsidium.graphics.Surface;
+import org.obsidium.graphics.surface.SimpleSurface;
+import org.obsidium.graphics.surface.Surface;
+import org.obsidium.math.Vector2;
 import org.obsidium.ui.UI;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 
 import static org.obsidium.window.WindowHelper.awtValue;
 
@@ -24,7 +24,92 @@ import static org.obsidium.window.WindowHelper.awtValue;
  */
 public class Window extends SimpleSurface {
     // window props
-    private String title = "Obsidium Game";
+    private String title = "Window";
+    private State state = State.NORMAL;
+    private boolean fullScreen = false;
+    private boolean disabled = false;
+    private boolean hideBar = false;
+
+    private final JFrame frame;
+    private final Canvas canvas;
+    private final BufferStrategy bufferStrategy;
+
+    private boolean stopProgramOnClose = false;
+
+    private boolean resizable = false;
+
+    // window extensions
+
+    public Events events;
+    public Mouse mouse;
+    public UI ui;
+
+    /**
+     * Creates a new window
+     * <p><b>Note:</b> This is an internal library method. To create a window,
+     *          use {@link Obsidium#createWindow()} instead.</p>
+     *
+     * <p><strong>Warning:</strong> Using this method directly is unsupported.
+     * Windows created here are not tracked by the internal registry, which
+     * will prevent the program from terminating correctly and lead to errors.</p>
+     *
+     * @param width
+     * @param height
+     * @param title
+     * @param x
+     * @param y
+     * @param resizable
+     * @param stopProgramOnClose
+     * @param hideBar
+     * @param state
+     *
+     * @since 1.0
+     */
+    public Window(int width, int height, String title, int x, int y, boolean resizable, boolean stopProgramOnClose, boolean hideBar, State state) {
+        this.title = title;
+        this.width = width;
+        this.height = height;
+        this.stopProgramOnClose = stopProgramOnClose;
+        frame = new JFrame();
+        frame.setTitle(title);
+
+        frame.setUndecorated(hideBar);
+
+        frame.setLayout( new GridBagLayout() );
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+
+        gbc.fill = GridBagConstraints.BOTH;
+
+        canvas = new Canvas();
+        canvas.setPreferredSize(new Dimension(width, height));
+        canvas.setFocusable(true);
+
+        frame.add(canvas, gbc);
+
+        frame.pack();
+        frame.setResizable(resizable);
+
+        setPos(x, y);
+
+        events = new Events(this);
+        mouse = new Mouse(this);
+        ui = new UI(this);
+
+        frame.setVisible(true);
+        canvas.requestFocus();
+
+        setState(state);
+
+        canvas.createBufferStrategy(2);
+        bufferStrategy = canvas.getBufferStrategy();
+        graphics2D = (Graphics2D) bufferStrategy.getDrawGraphics();
+    }
 
     /**
      * Sets the window title.
@@ -134,8 +219,6 @@ public class Window extends SimpleSurface {
         return frame.getLocation().y;
     }
 
-    private State state = State.NORMAL;
-
     /**
      * Returns the state of the window.
      * @return {@link State}
@@ -160,10 +243,6 @@ public class Window extends SimpleSurface {
         }
         this.state = state;
     }
-
-    // FULLSCREEN IS BROKEN
-
-    private boolean fullScreen = false;
 
     /**
      * Returns {@code true} if the window is full screened, otherwise returns {@code false}.
@@ -212,8 +291,6 @@ public class Window extends SimpleSurface {
         frame.setVisible(true);
     }
 
-    private boolean hideBar = false;
-
     /**
      * Returns {@code true} if the window's frame(the bar) is hidden, otherwise {@code false}.
      * <p><b>Note:</b>After the window isn't full screened anymore, it will show the frame(even when you have previously disabled it).</p>
@@ -232,17 +309,6 @@ public class Window extends SimpleSurface {
      */
     public void setHideBar(boolean hideBar) { frame.setUndecorated(hideBar); this.hideBar = hideBar; }
 
-
-    private boolean disabled = false;
-
-    // on creation vars
-
-    private final JFrame frame;
-    private final Canvas canvas;
-    private final BufferStrategy bufferStrategy;
-
-    private boolean stopProgramOnClose = false;
-
     /**
      * Returns if the program stops when the window is closed.
      * @return getStopProgramOnClose
@@ -251,8 +317,6 @@ public class Window extends SimpleSurface {
     public boolean getStopProgramOnClose() {
         return stopProgramOnClose;
     }
-
-    private boolean resizable = false;
 
     /**
      * Returns if the window can be resized by the used.
@@ -275,79 +339,6 @@ public class Window extends SimpleSurface {
         frame.setResizable(resizable);
     }
 
-    // window extensions
-
-    public Events events;
-    public Mouse mouse;
-    public UI ui;
-
-    /**
-     * Creates a new window
-     * <p><b>Note:</b> This is an internal library method. To create a window, 
-     *          use {@link Obsidium#createWindow()} instead.</p>
-     * 
-     * <p><strong>Warning:</strong> Using this method directly is unsupported. 
-     * Windows created here are not tracked by the internal registry, which 
-     * will prevent the program from terminating correctly and lead to errors.</p>
-     *
-     * @param width
-     * @param height
-     * @param title
-     * @param x
-     * @param y
-     * @param resizable
-     * @param stopProgramOnClose
-     * @param hideBar
-     * @param state
-     * 
-     * @since 1.0
-     */
-    public Window(int width, int height, String title, int x, int y, boolean resizable, boolean stopProgramOnClose, boolean hideBar, State state) {
-        this.title = title;
-        this.width = width;
-        this.height = height;
-        this.stopProgramOnClose = stopProgramOnClose;
-        frame = new JFrame();
-        frame.setTitle(title);
-
-        frame.setUndecorated(hideBar);
-
-        frame.setLayout( new GridBagLayout() );
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-
-        gbc.fill = GridBagConstraints.BOTH;
-        
-        canvas = new Canvas();
-        canvas.setPreferredSize(new Dimension(width, height));
-        canvas.setFocusable(true);
-
-        frame.add(canvas, gbc);
-
-        frame.pack();
-        frame.setResizable(resizable);
-
-        setPos(x, y);
-
-        frame.setVisible(true);
-        canvas.requestFocus();
-        setState(state);
-
-        canvas.createBufferStrategy(2);
-        bufferStrategy = canvas.getBufferStrategy();
-
-        newFrame();
-
-        events = new Events(frame, canvas);
-        mouse = new Mouse(frame);
-        ui = new UI(frame, gbc, graphics2D);
-    }
-
     // showing drawn image 
 
     /**
@@ -363,15 +354,19 @@ public class Window extends SimpleSurface {
     public void flip() {
         if (disabled) return;
 
-        Graphics2D g2d = (Graphics2D) bufferStrategy.getDrawGraphics();
-        g2d.drawImage(bufferedImage, null, 0, 0);
-        g2d.dispose();
+        graphics2D.dispose();
         bufferStrategy.show();
         width = frame.getWidth();
         height = frame.getHeight();
-        newFrame();
+        graphics2D = (Graphics2D) bufferStrategy.getDrawGraphics();
+    }
 
-        if (ui != null) ui.setGraphics2D(graphics2D);
+    public void clear(Color color) {
+        Draw.fill(this, color);
+    }
+
+    public void clear() {
+        Draw.fill(this, Color.WHITE);
     }
 
     // graphics
@@ -385,12 +380,30 @@ public class Window extends SimpleSurface {
     public Canvas getCanvas() { return canvas; }
 
     /**
+     * <b>---advanced---</b>
+     * Returns the AWT frame that is being used by the window.
+     * <p><b>Note:</b> Used for various methods in this library.</p>
+     * @return the {@link JFrame} that is being used
+     * @since 1.2
+     */
+    public JFrame getFrame() { return frame; }
+
+    /**
      * Captures the current frame and paints it on a {@link Surface}.
      * @return {@link Surface} containing the frame
      * @since 1.2
      */
     public Surface capture() {
-        return new Surface(bufferedImage);
+        int w = Math.max(1, canvas.getWidth());
+        int h = Math.max(1, canvas.getHeight());
+
+        BufferedImage bF = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = bF.createGraphics();
+
+        canvas.printAll(g2d);
+        g2d.dispose();
+
+        return new Surface(bF);
     }
 
     // close
@@ -410,7 +423,6 @@ public class Window extends SimpleSurface {
 
         if (graphics2D != null) graphics2D.dispose();
         bufferStrategy.dispose();
-        bufferedImage.flush();
         frame.dispose();
         Obsidium.closeWindow(this);
 
