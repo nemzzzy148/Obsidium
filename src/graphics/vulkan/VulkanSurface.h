@@ -9,7 +9,7 @@
 #include "VulkanSurface.h"
 #include <glfw/glfw3.h>
 
-#include "../../../include/core/Window.h"
+#include "../../../include/window/Window.h"
 
 namespace obsidium {
 class Window;

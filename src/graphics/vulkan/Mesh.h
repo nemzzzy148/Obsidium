@@ -26,7 +26,7 @@ struct VulkanVertex {
         return {{
             {.location = 0, .binding = 0, .format = vk::Format::eR32G32B32Sfloat, .offset = offsetof(VulkanVertex, position)},
             {.location = 1, .binding = 0, .format = vk::Format::eR32G32B32Sfloat, .offset =  offsetof(VulkanVertex, color)},
-            {.location = 2, .binding = 0, .format = vk::Format::eR32G32B32Sfloat, .offset = offsetof(VulkanVertex, uv)}
+            {.location = 3, .binding = 0, .format = vk::Format::eR32G32B32Sfloat, .offset = offsetof(VulkanVertex, uv)}
         }};
     }
 };

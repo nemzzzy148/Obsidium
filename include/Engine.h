@@ -5,9 +5,11 @@
 #pragma once
 #include <memory>
 
+#include "../src/utils/IDSystem.h"
 #include "graphics/Renderer.h"
-#include "core/Window.h"
-#include "scene/SceneManager.h"
+#include "window/Window.h"
+#include "world/World.h"
+#include "world/scene/SceneManager.h"
 
 namespace obsidium {
 
@@ -24,10 +26,8 @@ public:
 private:
     std::unique_ptr<Window> m_Window;
     std::unique_ptr<Renderer> m_Render;
-    std::unique_ptr<SceneManager> m_SceneManager;
-    std::unique_ptr<MeshManager> assetManager;
-
-    friend class Scene;
+    std::unique_ptr<AssetManager> assetManager;
+    std::unique_ptr<World> world;
 };
 
 }

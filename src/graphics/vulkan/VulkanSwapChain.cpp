@@ -92,8 +92,12 @@ void VulkanSwapChain::createSwapChain(uint32_t width, uint32_t height) {
     }
 }
 
-void VulkanSwapChain::recreate(uint32_t width, uint32_t height) {
+void VulkanSwapChain::recreate(const uint32_t width, const uint32_t height) {
     device.getDevice().waitIdle();
+
+    images.clear();
+    imageViews.clear();
+
     createSwapChain(width, height);
 }
 

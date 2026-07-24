@@ -11,6 +11,14 @@ struct UniformBuffer {
 };
 ConstantBuffer<UniformBuffer> ubo;
 
+SamplerState sampler;
+
+Texture2D textures[];
+
+struct PushConstants {
+    uint textureIndex;
+} pc;
+
 struct VSOutput {
     float4 position : SV_Position;
     float3 color;
@@ -28,5 +36,5 @@ VSOutput vertMain(VSInput input) {
 
 [shader("fragment")]
 float4 fragMain(VSOutput vertIn) : SV_Target {
-    return float4(vertIn.color, 1.0);
+    return (pc.textureIndex != ~0) ? float4(vertIn.color, 1.0) * textures[pc.textureIndex].Sample(sampler, vertIn.uv) : float4(vertIn.color, 1.0);
 }

@@ -26,18 +26,23 @@ namespace obsidium::vulkan {
 
 class VulkanRenderer : public rhi::RenderBackend {
 public:
-    VulkanRenderer(Window* window, MeshManager* assetManager);
+    VulkanRenderer(Window* window);
     void destroy() override;
     void submitPacket(rhi::RenderPacket& packet) override;
     void resize(uint32_t width, uint32_t height) override;
-    std::unique_ptr<VulkanBuffer> createVulkanBuffer(size_t size, rhi::BufferType bufferType);
-    std::unique_ptr<rhi::Buffer> createBuffer(size_t size, rhi::BufferType bufferType) override;
+    [[nodiscard]] std::unique_ptr<VulkanBuffer> createVulkanBuffer(size_t size, BufferType bufferType) const;
+    std::unique_ptr<rhi::Buffer> createBuffer(size_t size, BufferType bufferType) override;
+    std::unique_ptr<rhi::Texture> createTexture(unsigned char* data, int width, int height) override;
 private:
     void executeFrameContext(VulkanFrameContext& frameContext, rhi::RenderPacket& renderPacket) const;
 
     vk::MemoryPropertyFlags bufferAllocationMemoryProperties = vk::MemoryPropertyFlagBits::eHostVisible |
         vk::MemoryPropertyFlagBits::eHostCoherent;
-    uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
+    [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
+
+    Window* window = nullptr;
+
+    void resize() const;
 
     std::unique_ptr<VulkanContext> context;
     std::unique_ptr<VulkanSurface> surface;

@@ -7,12 +7,6 @@
 
 namespace obsidium::rhi {
 
-enum class BufferType {
-    VertexBuffer,
-    IndexBuffer,
-    UniformBuffer
-};
-
 class Buffer {
 public:
     virtual ~Buffer() = default;

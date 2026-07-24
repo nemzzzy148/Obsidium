@@ -9,13 +9,14 @@
 #include "VulkanBuffer.h"
 #include "VulkanDescriptors.h"
 #include "VulkanFrameContext.h"
-#include "../../../include/core/Window.h"
-#include "../../../include/graphics/MeshManager.h"
+#include "VulkanTexture.h"
+#include "../../../include/window/Window.h"
+#include "../../../include/assets/MeshManager.h"
 
 namespace obsidium::vulkan {
 
-VulkanRenderer::VulkanRenderer(Window* window, MeshManager* assetManager) {
-    this->assetManager = assetManager;
+VulkanRenderer::VulkanRenderer(Window* window) {
+    this->window = window;
 
     auto extensions = window->getRequiredInstanceExtensions();
     context = std::make_unique<VulkanContext>(extensions);
@@ -45,8 +46,19 @@ void VulkanRenderer::submitPacket(rhi::RenderPacket& packet) {
     frameIndex =  (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void VulkanRenderer::resize(uint32_t width, uint32_t height) {
+void VulkanRenderer::resize(const uint32_t width, const uint32_t height) {
+    if (width == 0 || height == 0) return;
+    swapChain->recreate(width, height);
+}
 
+void VulkanRenderer::resize() const {
+    int width, height;
+    window->getFrameBufferSize(&width, &height);
+    while (width == 0 || height == 0) {
+        window->getFrameBufferSize(&width, &height);
+        window->waitEvents();
+    }
+    swapChain->recreate(width, height);
 }
 
 uint32_t VulkanRenderer::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const {
@@ -61,17 +73,17 @@ uint32_t VulkanRenderer::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyF
     throw std::runtime_error("failed to find suitable memory type");
 }
 
-std::unique_ptr<VulkanBuffer> VulkanRenderer::createVulkanBuffer(size_t size, rhi::BufferType bufferType) {
+std::unique_ptr<VulkanBuffer> VulkanRenderer::createVulkanBuffer(size_t size, BufferType bufferType) const {
     vk::BufferUsageFlags usage;
 
     switch (bufferType) {
-        case rhi::BufferType::IndexBuffer:
+        case BufferType::IndexBuffer:
             usage = vk::BufferUsageFlagBits::eIndexBuffer;
             break;
-        case rhi::BufferType::VertexBuffer:
+        case BufferType::VertexBuffer:
             usage = vk::BufferUsageFlagBits::eVertexBuffer;
             break;
-        case rhi::BufferType::UniformBuffer:
+        case BufferType::UniformBuffer:
             usage = vk::BufferUsageFlagBits::eUniformBuffer;
             break;
     }
@@ -94,14 +106,14 @@ std::unique_ptr<VulkanBuffer> VulkanRenderer::createVulkanBuffer(size_t size, rh
         bufferMemory.mapMemory(0, size), size);
 }
 
-std::unique_ptr<rhi::Buffer> VulkanRenderer::createBuffer(size_t size, rhi::BufferType bufferType) {
+std::unique_ptr<rhi::Buffer> VulkanRenderer::createBuffer(size_t size, BufferType bufferType) {
     return std::move(createVulkanBuffer(size, bufferType));
 }
 
-void transitionImageLayout(vk::raii::CommandBuffer &commandBuffer,
-    const vk::raii::Image &image,
-    vk::ImageLayout oldLayout,
-    vk::ImageLayout newLayout) {
+void transitionImageLayout(const vk::raii::CommandBuffer &commandBuffer,
+                           const vk::raii::Image &image,
+                           vk::ImageLayout oldLayout,
+                           vk::ImageLayout newLayout) {
     vk::ImageMemoryBarrier barrier{
         .oldLayout = oldLayout,
         .newLayout = newLayout,
@@ -135,8 +147,50 @@ void transitionImageLayout(vk::raii::CommandBuffer &commandBuffer,
     commandBuffer.pipelineBarrier(srcStage, dstStage, {}, {}, {}, barrier);
 }
 
+std::unique_ptr<rhi::Texture> VulkanRenderer::createTexture(unsigned char* data, const int width, const int height) {
+    constexpr auto imageFormat = vk::Format::eR8G8B8A8Srgb;
+    const vk::ImageCreateInfo imageInfo{
+        .imageType = vk::ImageType::e2D,
+        .format = imageFormat,
+        .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = vk::SampleCountFlagBits::e1,
+        .tiling = vk::ImageTiling::eOptimal,
+        .usage = vk::ImageUsageFlagBits::eSampled,
+        .sharingMode = vk::SharingMode::eExclusive
+    };
+
+    auto image = vk::raii::Image(device->getDevice(), imageInfo);
+
+    constexpr vk::MemoryPropertyFlags imageProperties = vk::MemoryPropertyFlagBits::eHostCoherent |
+        vk::MemoryPropertyFlagBits::eHostVisible;
+
+    const vk::MemoryRequirements memoryRequirements = image.getMemoryRequirements();
+    const vk::MemoryAllocateInfo allocInfo{
+        .allocationSize = memoryRequirements.size,
+        .memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, imageProperties)
+    };
+    auto memory = vk::raii::DeviceMemory(device->getDevice(), allocInfo);
+    image.bindMemory(memory, 0);
+
+    void* mapped = memory.mapMemory(0, memoryRequirements.size);
+    memcpy(mapped, data, memoryRequirements.size);
+
+    const vk::ImageViewCreateInfo viewInfo{
+        .image = image,
+        .viewType = vk::ImageViewType::e2D,
+        .format = imageFormat,
+        .subresourceRange = {.aspectMask = vk::ImageAspectFlagBits::eColor, .baseMipLevel = 0, .levelCount = 1,
+            .baseArrayLayer = 0, .layerCount = 1}
+    };
+
+    auto imageView = vk::raii::ImageView(device->getDevice(), viewInfo);
+    return std::make_unique<VulkanTexture>(std::move(image), std::move(memory), mapped, std::move(imageView));
+}
+
 void transitionImageLayout(
-    vk::raii::CommandBuffer &commandBuffer,
+    const vk::raii::CommandBuffer &commandBuffer,
     const vk::Image &image,
     vk::ImageLayout oldLayout,
     vk::ImageLayout newLayout,
@@ -174,11 +228,11 @@ void transitionImageLayout(
 }
 
 void VulkanRenderer::executeFrameContext(VulkanFrameContext& frameContext, rhi::RenderPacket& renderPacket) const {
-    // update uniform buffer
     rhi::UniformBufferObject ubo{};
-    ubo.proj = renderPacket.camera.first->getProjectionMat();
+    ubo.proj = renderPacket.cameraTransform.camera.getProjectionMat(
+        static_cast<float>(swapChain->getExtent().width) / static_cast<float>(swapChain->getExtent().height));
     ubo.proj[1][1] *= -1;
-    ubo.view = renderPacket.camera.second;
+    ubo.view = renderPacket.cameraTransform.view;
     auto fenceResult = device->getDevice().waitForFences(*frameContext.inFlightFence, vk::True, UINT64_MAX);
     if (fenceResult != vk::Result::eSuccess) {
         throw std::runtime_error("failed to wait for fence");
@@ -188,7 +242,7 @@ void VulkanRenderer::executeFrameContext(VulkanFrameContext& frameContext, rhi::
         frameContext.presentCompleteSemaphore, nullptr);
 
     if (result == vk::Result::eErrorOutOfDateKHR) {
-        //resize needed
+        resize();
         return;
     }
     if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
@@ -235,15 +289,15 @@ void VulkanRenderer::executeFrameContext(VulkanFrameContext& frameContext, rhi::
     frameContext.commandBuffer.setScissor(0, vk::Rect2D(vk::Offset2D(0,0), swapChain->getExtent()));
     frameContext.commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout->getHandle(), 0, *frameContext.descriptorSet, nullptr);
 
-    auto* vertexBuffer = static_cast<VulkanBuffer*>(assetManager->getVertexBuffer());
-    auto* indexBuffer = static_cast<VulkanBuffer*>(assetManager->getIndexBuffer());
+    auto* vertexBuffer = static_cast<VulkanBuffer*>(renderPacket.assetManager->getVertexBuffer());
+    auto* indexBuffer = static_cast<VulkanBuffer*>(renderPacket.assetManager->getIndexBuffer());
     frameContext.commandBuffer.bindVertexBuffers(0, *vertexBuffer->getBuffer(), {0});
     frameContext.commandBuffer.bindIndexBuffer(*indexBuffer->getBuffer(), 0, vk::IndexType::eUint32);
 
-    for (const auto&[handle, model] : renderPacket.meshes) {
-        GPUMesh mesh = assetManager->getMesh(handle);
+    for (rhi::Renderable renderable : renderPacket.renderables) {
+        GPUMesh mesh = renderPacket.assetManager->getMesh(renderable.meshID);
         if (mesh.hash == ~0) continue;
-        ubo.model = model;
+        ubo.model = renderable.model;
         frameContext.uniformBuffer->write(&ubo, sizeof(ubo), 0);
         frameContext.commandBuffer.drawIndexed(mesh.indexCount, 1,
             mesh.indexRegion.offset * sizeof(Index), mesh.vertexRegion.offset, 0);
@@ -290,7 +344,7 @@ void VulkanRenderer::executeFrameContext(VulkanFrameContext& frameContext, rhi::
     result = device->getGraphicsQueue().presentKHR(presentInfo);
 
     if (result == vk::Result::eSuboptimalKHR || result == vk::Result::eErrorOutOfDateKHR) {
-        // resize needed
+        resize();
     }
     else {
         assert(result == vk::Result::eSuccess);
@@ -303,7 +357,7 @@ void VulkanRenderer::createFrameContexts() {
     std::vector<std::unique_ptr<VulkanBuffer>> uniformBuffers;
     uniformBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
     for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        uniformBuffers.emplace_back(createVulkanBuffer(sizeof(rhi::UniformBufferObject), rhi::BufferType::UniformBuffer));
+        uniformBuffers.emplace_back(createVulkanBuffer(sizeof(rhi::UniformBufferObject), BufferType::UniformBuffer));
     }
 
     VulkanDescriptorSets descriptorSets = VulkanDescriptorSets(*device, *descriptorSetLayout,*descriptorPool, uniformBuffers, MAX_FRAMES_IN_FLIGHT);

@@ -27,10 +27,17 @@ VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(VulkanDevice& device) {
 }
 
 VulkanPipelineLayout::VulkanPipelineLayout(VulkanDevice& device, VulkanDescriptorSetLayout& descriptorSetLayout) {
+    vk::PushConstantRange pushRange{
+        .stageFlags = vk::ShaderStageFlagBits::eFragment,
+        .offset = 0,
+        .size = sizeof(PushConstants)
+    };
+
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo{
         .setLayoutCount = 1,
         .pSetLayouts = &*descriptorSetLayout.getHandle(),
-        .pushConstantRangeCount = 0
+        .pushConstantRangeCount = 1,
+        .pPushConstantRanges = &pushRange
     };
     pipelineLayout = vk::raii::PipelineLayout(device.getDevice(), pipelineLayoutInfo);
 }

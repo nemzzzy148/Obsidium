@@ -10,6 +10,7 @@
 
 #include "../rhi/RendererBackend.h"
 #include "../rhi/RenderPacket.h"
+#include "utils/Hash.h"
 #include "vulkan/VulkanRenderer.h"
 
 namespace obsidium {
@@ -26,19 +27,21 @@ std::unique_ptr<Renderer> Renderer::create(Window* window, MeshManager* assetMan
 }
 
 void Renderer::renderScene(Scene &scene) const {
-    rhi::RenderPacket renderPacket;
-    renderPacket.meshes.reserve(scene.meshComponents.size());
-    const TransformComponent view = scene.getTransform(scene.getMainCamera());
-    renderPacket.camera = std::make_pair( scene.getCamera(scene.getMainCamera()), Camera::getViewMat(view.position, view.rotation) );
-
-    for (const auto &gameObject: scene.gameObjects | std::views::values) {
-        if (scene.meshComponents.contains(gameObject.handle)) {
-            renderPacket.meshes.emplace(scene.meshComponents.at(gameObject.handle).handle,
-                scene.transformComponents.at(gameObject.handle).getModelMatrix());
-        }
-    }
-
+    rhi::RenderPacket renderPacket = scene.createRenderPacket();
     submitPacket(renderPacket);
+}
+
+Buffer Renderer::createBuffer(BufferType type, size_t size) const {
+    Buffer buffer = Buffer();
+    buffer.buffer = backend->createBuffer(size, type);
+    return std::move(buffer);
+}
+
+Texture Renderer::createTexture(const Image &image) const {
+    auto texture = Texture();
+    texture.texture = backend->createTexture(image.data, image.width, image.height);
+    texture.hash = hash::fnv1a(image.data, image.width * image.height * sizeof(unsigned char) * DefaultChannels);
+    return std::move(texture);
 }
 
 void Renderer::resize(const uint32_t width, const uint32_t height) const {

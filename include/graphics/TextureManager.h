@@ -1,8 +1,0 @@
-//
-// Created by Nemesis Verstraete on 18/07/2026.
-//
-
-#ifndef OBSIDIUM_TEXTUREMANAGER_H
-#define OBSIDIUM_TEXTUREMANAGER_H
-
-#endif //OBSIDIUM_TEXTUREMANAGER_H

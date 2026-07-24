@@ -40,4 +40,8 @@ struct GPUMesh {
     uint64_t hash = ~0;
 };
 
+struct PushConstants {
+    uint16_t textureIndex;
+};
+
 }

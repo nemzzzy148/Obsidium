@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 
+#include "Buffer.h"
 #include "../../src/rhi/RendererBackend.h"
 #include "../scene/SceneManager.h"
 
@@ -23,14 +24,19 @@ public:
 
     [[nodiscard]] rhi::RenderBackend* getBackend() const { return backend.get(); }
 
+    // auto rendering
     void submitPacket(rhi::RenderPacket& packet) const;
     void renderScene(Scene& scene) const;
-    void resize(uint32_t width, uint32_t height) const;
+
+    [[nodiscard]] Buffer createBuffer(BufferType type, size_t size) const;
+    [[nodiscard]] Texture createTexture(const Image& image) const;
 
     void destroy() const;
 private:
     static std::unique_ptr<Renderer> create(Window* window, MeshManager* assetManager, Backend backend = Backend::Vulkan);
     Backend backendType = Backend::Vulkan;
+
+    void resize(uint32_t width, uint32_t height) const;
 
     Renderer() = default;
     std::unique_ptr<rhi::RenderBackend> backend;

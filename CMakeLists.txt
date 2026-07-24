@@ -12,7 +12,7 @@ find_package(glfw3 REQUIRED)
 include_directories(/opt/homebrew/include)
 
 add_library(Obsidium SHARED
-        include/core/Window.h
+        include/window/Window.h
         include/Engine.h
         include/graphics/Renderer.h
         src/Engine.cpp
@@ -33,19 +33,19 @@ add_library(Obsidium SHARED
         src/graphics/vulkan/VulkanFrameContext.h
         src/graphics/vulkan/VulkanPipeline.cpp
         src/graphics/vulkan/VulkanPipeline.h
-        src/scene/Scene.cpp
-        include/scene/Scene.h
-        include/scene/Components.h
-        src/scene/GameObject.cpp
-        include/scene/GameObject.h
-        src/core/UUID.cpp
-        src/core/UUID.h
-        src/scene/Camera.cpp
-        include/scene/Camera.h
-        src/scene/SceneManager.cpp
-        include/scene/SceneManager.h
-        src/graphics/MeshManager.cpp
-        include/graphics/MeshManager.h
+        src/world/scene/Scene.cpp
+        include/world/scene/Scene.h
+        include/world/scene/Components.h
+        src/world/scene/Entity.cpp
+        include/world/scene/Entity.h
+        src/utils/UUID.cpp
+        src/utils/UUID.h
+        src/world/scene/Camera.cpp
+        include/world/scene/Camera.h
+        src/world/scene/SceneManager.cpp
+        include/world/scene/SceneManager.h
+        src/assets/MeshManager.cpp
+        include/assets/MeshManager.h
         src/graphics/vulkan/VulkanBuffer.cpp
         src/graphics/vulkan/VulkanBuffer.h
         include/graphics/Mesh.h
@@ -53,27 +53,50 @@ add_library(Obsidium SHARED
         src/graphics/vulkan/VulkanCommandPool.h
         src/graphics/vulkan/VulkanCommandBuffers.cpp
         src/graphics/vulkan/VulkanCommandBuffers.h
-        include/Application.h
         src/graphics/shader/Shader.cpp
         src/graphics/shader/Shader.h
         src/graphics/vulkan/Mesh.h
-        include/graphics/Shape.h
-        src/graphics/Shape.cpp
-        include/core/Hash.h
-        src/core/Window.cpp
-        src/core/GLFWImplementation.h
+        include/utils/Hash.h
+        src/window/Window.cpp
+        src/window/GLFWImplementation.h
         src/graphics/vulkan/VulkanDescriptors.cpp
         src/graphics/vulkan/VulkanDescriptors.h
-        include/graphics/TextureManager.h
+        include/assets/TextureManager.h
         src/rhi/RendererBackend.cpp
         include/Obsidium.h
         src/graphics/Polygon.cpp
         include/graphics/Polygon.h
+        src/graphics/Model.cpp
+        include/graphics/Model.h
+        include/graphics/Texture.h
+        src/graphics/Texture.cpp
+        src/assets/TextureManager.cpp
+        thirdparty/stb_image/stb_image.cpp
+        src/graphics/vulkan/VulkanTexture.h
+        src/graphics/vulkan/VulkanTexture.cpp
+        include/graphics/Buffer.h
+        src/graphics/Buffer.cpp
+        src/world/World.cpp
+        include/world/World.h
+        src/utils/IDSystem.cpp
+        src/utils/IDSystem.h
+        src/world/SparseSet.cpp
+        include/world/SparseSet.h
+        src/world/EntityComponentManager.cpp
+        include/world/EntityComponentManager.h
+        src/world/System.cpp
+        include/world/System.h
+        src/assets/AssetManager.cpp
+        include/assets/AssetManager.h
+        include/graphics/RendererSystem.cpp
+        include/graphics/RendererSystem.h
 )
 
 target_include_directories(Obsidium PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
+
+target_include_directories(Obsidium PRIVATE thirdparty)
 
 enable_testing()
 
@@ -86,4 +109,5 @@ target_link_libraries(Obsidium
         Vulkan::Vulkan
         glfw
         slang
+        stbi
 )

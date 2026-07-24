@@ -4,13 +4,22 @@
 
 #pragma once
 #include "../../include/graphics/Mesh.h"
-#include "../../include/scene/Camera.h"
+#include "assets/AssetManager.h"
+#include "graphics/Texture.h"
+#include "world/scene/Camera.h"
 
 namespace obsidium::rhi {
 
+struct Renderable {
+    AssetID meshID;
+    AssetID textureID;
+    glm::mat4 model;
+};
+
 struct RenderPacket {
-    std::unordered_map<MeshHandle, glm::mat4> meshes;
-    std::pair<const Camera*, glm::mat4x4> camera;
+    std::vector<Renderable> renderables;
+    CameraTransform cameraTransform;
+    AssetManager* assetManager;
 };
 
 }
