@@ -7,13 +7,13 @@
 namespace obsidium {
 
 EntityComponentManager::EntityComponentManager(const uint32_t entityCount) : idSystem(),
+                                                                       dataSet(entityCount),
                                                                        tagSet(entityCount),
                                                                        transformSet(entityCount),
                                                                        meshSet(entityCount),
                                                                        materialSet(entityCount),
                                                                        cameraSet(entityCount),
-                                                                       pointerSet(entityCount) {
-}
+                                                                       pointerSet(entityCount) {}
 
 EntityID EntityComponentManager::createEntity() {
     const EntityID id = idSystem.allocate();
@@ -24,12 +24,16 @@ EntityID EntityComponentManager::createEntity() {
 void EntityComponentManager::destroyEntity(const EntityID id) {
     idSystem.free(id);
 
+    dataSet.remove(id);
     tagSet.remove(id);
     transformSet.remove(id);
     meshSet.remove(id);
     materialSet.remove(id);
     cameraSet.remove(id);
     pointerSet.remove(id);
+}
+
+void EntityComponentManager::hi() {
 }
 
 template<typename T>
@@ -48,6 +52,11 @@ bool EntityComponentManager::hasComponent(EntityID id) {
 }
 
 template<typename T>
+void EntityComponentManager::enableComponent(bool enable) {
+    getSet<T>().
+}
+
+template<typename T>
 void EntityComponentManager::removeComponent(EntityID id) {
     // cannot remove transform component
     if constexpr (std::is_same_v<T, TransformComponent>) return;
@@ -56,7 +65,8 @@ void EntityComponentManager::removeComponent(EntityID id) {
 
 template<typename T>
 SparseSet<T> & EntityComponentManager::getSet() {
-    if constexpr (std::is_same_v<T, TagComponent>) return tagSet;
+    //if constexpr (std::is_same_v<T, EntityComponent>) return dataSet;
+     if constexpr (std::is_same_v<T, TagComponent>) return tagSet;
     else if constexpr (std::is_same_v<T, TransformComponent>) return transformSet;
     else if constexpr (std::is_same_v<T, MeshComponent>) return meshSet;
     else if constexpr (std::is_same_v<T, MaterialComponent>) return materialSet;

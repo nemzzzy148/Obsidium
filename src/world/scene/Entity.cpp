@@ -8,6 +8,6 @@
 
 namespace obsidium {
 
-Entity::Entity(World& world) : world(world) {}
+Entity::Entity(World& world, const EntityID id) : world(world), id(id) {}
 
 }

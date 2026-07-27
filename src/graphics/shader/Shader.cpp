@@ -13,7 +13,7 @@ namespace obsidium {
 Slang::ComPtr<slang::IGlobalSession> ShaderInstance::globalSession;
 Slang::ComPtr<slang::ISession> ShaderInstance::session;
 
-void ShaderInstance::initialize(ShaderFormat format) {
+void ShaderInstance::initialize(const ShaderFormat format) {
     if (SLANG_FAILED(slang::createGlobalSession(globalSession.writeRef()))) {
         throw std::runtime_error("failed to create Slang global session");
     }

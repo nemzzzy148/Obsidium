@@ -25,14 +25,15 @@ bool VulkanDevice::isDeviceSuitable(vk::raii::PhysicalDevice const &physicalDevi
             });
         });
 
-        auto features = physicalDevice.template getFeatures2<vk::PhysicalDeviceFeatures2,
+        auto features = physicalDevice.getFeatures2<vk::PhysicalDeviceFeatures2,
             vk::PhysicalDeviceVulkan11Features, vk::PhysicalDeviceVulkan13Features,
-            vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>();
+            vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT, vk::PhysicalDeviceDescriptorIndexingFeatures>();
 
-        auto supportsReqFeatures = features.template get<vk::PhysicalDeviceFeatures2>().features.samplerAnisotropy &&
-            features.template get<vk::PhysicalDeviceVulkan11Features>().shaderDrawParameters &&
-                features.template get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering &&
-                    features.template get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState;
+        auto supportsReqFeatures = features.get<vk::PhysicalDeviceFeatures2>().features.samplerAnisotropy &&
+            features.get<vk::PhysicalDeviceVulkan11Features>().shaderDrawParameters &&
+                features.get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering &&
+                    features.get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState &&
+                        features.get<vk::PhysicalDeviceDescriptorIndexingFeatures>();
 
         return supportsVK13 && supportsReqFeatures && supportsAllReqExt && supportsGraphics;
 }

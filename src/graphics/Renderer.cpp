@@ -6,33 +6,24 @@
 
 #include "../../include/graphics/Renderer.h"
 
-#include <ranges>
-
 #include "../rhi/RendererBackend.h"
 #include "../rhi/RenderPacket.h"
 #include "utils/Hash.h"
 #include "vulkan/VulkanRenderer.h"
+#include "../../include/graphics/Texture.h"
 
 namespace obsidium {
 
-std::unique_ptr<Renderer> Renderer::create(Window* window, MeshManager* assetManager, const Backend backend) {
-    auto r = std::unique_ptr<Renderer>(new Renderer());
-    switch (backend) {
+Renderer::Renderer(Window *window, const Backend rendererBackend) : backendType(rendererBackend) {
+    switch (rendererBackend) {
         case Backend::Vulkan:
-            r->backend = std::make_unique<vulkan::VulkanRenderer>(window, assetManager);
+            backend = std::make_unique<vulkan::VulkanRenderer>(window);
             ShaderInstance::initialize(ShaderFormat::SPIRV);
     }
-    r->backendType = backend;
-    return std::move(r);
 }
 
-void Renderer::renderScene(Scene &scene) const {
-    rhi::RenderPacket renderPacket = scene.createRenderPacket();
-    submitPacket(renderPacket);
-}
-
-Buffer Renderer::createBuffer(BufferType type, size_t size) const {
-    Buffer buffer = Buffer();
+Buffer Renderer::createBuffer(const BufferType type, const size_t size) const {
+    auto buffer = Buffer();
     buffer.buffer = backend->createBuffer(size, type);
     return std::move(buffer);
 }

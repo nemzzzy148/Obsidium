@@ -7,10 +7,12 @@
 
 namespace obsidium {
 
+class World;
+
 class ISystem {
 public:
     virtual ~ISystem() = default;
-    virtual void update(EntityComponentManager& ECManager, float dt);
+    virtual void update(World &world, float dt);
 };
 
 class SystemManager {

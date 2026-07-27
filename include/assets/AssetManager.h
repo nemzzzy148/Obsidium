@@ -10,6 +10,8 @@
 
 namespace obsidium {
 
+class Renderer;
+
 class AssetManager {
 public:
     explicit AssetManager(Renderer* renderer);

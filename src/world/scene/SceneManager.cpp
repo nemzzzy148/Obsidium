@@ -2,39 +2,72 @@
 // Created by Nemesis Verstraete on 16/07/2026.
 //
 
-#include "../../include/scene/SceneManager.h"
+#include "../../../include/world/scene/SceneManager.h"
 
 namespace obsidium {
 
-std::unique_ptr<SceneManager> SceneManager::create(MeshManager* meshManager) {
-    auto sceneManager = std::make_unique<SceneManager>(SceneManager());
-    sceneManager->meshManager = meshManager;
-    sceneManager->createScene(true);
-    return std::move(sceneManager);
+SceneManager::SceneManager(EntityComponentManager &ECManager, const std::string &sceneName) : ECManager(ECManager) {
+    createScene(sceneName);
 }
 
-void SceneManager::createScene(const bool load) {
-    std::unique_ptr<Scene> s = Scene::create(meshManager, sceneIndex++);
-    scenes.push_back(std::move(s));
+uint32_t SceneManager::createScene(const std::string &sceneName, const bool load) {
+    const auto entity = ECManager.createEntity();
 
-    if (load || scene == nullptr) {
-        scene = scenes.back().get();
-    }
-}
+    const uint32_t sceneIndex = scenes.size();
+    SceneEntry entry{
+        .name = sceneName,
+        .index = sceneIndex
+    };
+    entry.ownedEntities.push_back(entity);
+    scenes.push_back(std::move(entry));
+    if (load) currentSceneIndex = sceneIndex;
 
-uint32_t SceneManager::activeSceneIndex() const {
+    ECManager.addComponent<EntityComponent>(entity, {.name = "camera", .sceneIndex = sceneIndex});
     return sceneIndex;
 }
 
-void SceneManager::loadScene(uint32_t sceneIndex) {
-    if (!isIndexInScenes(sceneIndex)) return;
-
-    this->sceneIndex = sceneIndex;
-    scene = scenes[sceneIndex].get();
+Scene SceneManager::activeScene() {
+    return {this, currentSceneIndex};
 }
 
-bool SceneManager::isIndexInScenes(uint32_t sceneIndex) const {
-    return (sceneIndex < scenes.size());
+uint32_t SceneManager::activeSceneIndex() const {
+    return currentSceneIndex;
+}
+
+const std::string & SceneManager::activeSceneName() const {
+    return scenes[currentSceneIndex].name;
+}
+
+
+void SceneManager::loadScene(const uint32_t sceneIndex) {
+    if (sceneIndex >= scenes.size()) return;
+    for (const EntityID& id : scenes[currentSceneIndex].ownedEntities) {
+        ECManager.destroyEntity(id);
+    }
+    scenes[currentSceneIndex].ownedEntities.clear();
+    scenes[currentSceneIndex].mainCamera = InvalidEntityID;
+    currentSceneIndex = sceneIndex;
+    createSceneRequirements(currentSceneIndex);
+}
+
+void SceneManager::loadScene(const std::string &sceneName) {
+    for (uint32_t i = 0; i < scenes.size(); i++) {
+        if (scenes[i].name == sceneName) loadScene(i);
+    }
+}
+
+void SceneManager::createSceneRequirements(const uint32_t sceneIndex) {
+    if (!scenes[sceneIndex].ownedEntities.empty() && scenes[sceneIndex].mainCamera != InvalidEntityID)  return;
+    const EntityID camera = createMainCamera(sceneIndex);
+    scenes[sceneIndex].mainCamera = camera;
+    scenes[sceneIndex].ownedEntities.push_back(camera);
+}
+
+EntityID SceneManager::createMainCamera(const uint32_t sceneIndex) const {
+    const EntityID id = ECManager.createEntity();
+    ECManager.addComponent<EntityComponent>(id, {.name = "camera", .sceneIndex = sceneIndex});
+    ECManager.addComponent<CameraComponent>(id, {.camera = Camera()});
+    return id;
 }
 
 }

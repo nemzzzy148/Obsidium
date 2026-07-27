@@ -4,6 +4,8 @@
 
 #include "../../include/assets/TextureManager.h"
 
+#include "graphics/Renderer.h"
+
 namespace obsidium {
 
 std::unique_ptr<TextureManager> TextureManager::create(Renderer* renderer, IDSystem<AssetID>* idSystem) {

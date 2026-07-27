@@ -26,15 +26,18 @@ namespace obsidium::vulkan {
 
 class VulkanRenderer : public rhi::RenderBackend {
 public:
-    VulkanRenderer(Window* window);
+    explicit VulkanRenderer(Window* window);
     void destroy() override;
     void submitPacket(rhi::RenderPacket& packet) override;
     void resize(uint32_t width, uint32_t height) override;
     [[nodiscard]] std::unique_ptr<VulkanBuffer> createVulkanBuffer(size_t size, BufferType bufferType) const;
     std::unique_ptr<rhi::Buffer> createBuffer(size_t size, BufferType bufferType) override;
     std::unique_ptr<rhi::Texture> createTexture(unsigned char* data, int width, int height) override;
+
+    void begin() override;
+    void end() override;
 private:
-    void executeFrameContext(VulkanFrameContext& frameContext, rhi::RenderPacket& renderPacket) const;
+    void renderOntoSwapChain(const rhi::RenderPacket& renderPacket);
 
     vk::MemoryPropertyFlags bufferAllocationMemoryProperties = vk::MemoryPropertyFlagBits::eHostVisible |
         vk::MemoryPropertyFlagBits::eHostCoherent;

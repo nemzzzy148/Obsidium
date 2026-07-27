@@ -9,12 +9,33 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "Camera.h"
-#include "../../graphics/Mesh.h"
 #include "graphics/Texture.h"
+#include "../../../src/utils/IDSystem.h"
 
 namespace obsidium {
 
-struct TagComponent {
+enum class Components {
+    Tag,
+    Transform,
+    Mesh,
+    Material,
+    Camera,
+    Pointer
+};
+
+struct Component {
+    bool enabled = true;
+};
+
+struct EntityComponent : Component {
+    std::string name;
+    uint32_t sceneIndex;
+
+    // keep in transitioning scene
+    bool destroyOnLoad = false;
+};
+
+struct TagComponent : Component {
     std::string tag;
 };
 
@@ -30,20 +51,32 @@ struct TransformComponent {
     }
 };
 
-struct MeshComponent {
-    MeshHandle meshHandle = InvalidMeshHandle;
+struct MeshComponent : Component {
+    AssetID id = InvalidAssetID;
 };
 
-struct MaterialComponent {
-    TextureHandle textureHandle = InvalidTextureHandle;
+struct MaterialComponent : Component {
+    AssetID textureID = InvalidAssetID;
+    AssetID shaderID = InvalidAssetID;
 };
 
-struct CameraComponent {
+struct CameraComponent : Component {
     Camera camera;
 };
 
-struct PointerComponent {
-    void* pointer;
+struct PointerComponent : Component {
+    void* pointer = nullptr;
 };
+
+template<Components C> struct ComponentMapping;
+
+template<> struct ComponentMapping<Components::Tag> { using type = TagComponent; };
+template<> struct ComponentMapping<Components::Transform> { using type = TransformComponent; };
+template<> struct ComponentMapping<Components::Mesh> { using type = MeshComponent; };
+template<> struct ComponentMapping<Components::Material> { using type = MaterialComponent; };
+template<> struct ComponentMapping<Components::Camera> { using type = CameraComponent; };
+template<> struct ComponentMapping<Components::Pointer> { using type = PointerComponent; };
+
+template<Components C> using ComponentType = ComponentMapping<C>::type;
 
 }

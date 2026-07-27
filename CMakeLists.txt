@@ -88,8 +88,17 @@ add_library(Obsidium SHARED
         include/world/System.h
         src/assets/AssetManager.cpp
         include/assets/AssetManager.h
-        include/graphics/RendererSystem.cpp
-        include/graphics/RendererSystem.h
+        src/graphics/RenderSystem.cpp
+        include/graphics/RenderSystem.h
+        src/utils/Logger.cpp
+        src/utils/Logger.h
+        src/utils/Time.cpp
+        include/utils/Time.h
+        include/graphics/Shader.h
+        src/assets/ShaderManager.cpp
+        include/assets/ShaderManager.h
+        src/graphics/Material.cpp
+        include/graphics/Material.h
 )
 
 target_include_directories(Obsidium PUBLIC

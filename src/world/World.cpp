@@ -6,13 +6,35 @@
 
 namespace obsidium {
 
-World::World(IDSystem<EntityID>* idSystem) {
-    ECManager = std::make_unique<EntityComponentManager>(idSystem, 256);
-    systemManager = std::make_unique<SystemManager>();
+World::World() {
+    m_Time = std::make_unique<Time>();
+    m_ECManager = std::make_unique<EntityComponentManager>(256);
+    m_SystemManager = std::make_unique<SystemManager>();
+    m_SceneManager = std::make_unique<SceneManager>(ECManager());
 }
 
 void World::updateSystems(const float dt) const {
-    systemManager->updateAll(*ECManager, dt);
+    m_SystemManager->updateAll(*m_ECManager, dt);
+}
+
+void World::updateSystems() const {
+    updateSystems(m_Time->deltaTime());
+}
+
+Scene World::activeScene() const {
+    return m_SceneManager->activeScene();
+}
+
+SceneManager & World::sceneManager() const {
+    return *m_SceneManager;
+}
+
+SystemManager & World::systemManager() const {
+    return *m_SystemManager;
+}
+
+EntityComponentManager & World::ECManager() const {
+    return *m_ECManager;
 }
 
 }

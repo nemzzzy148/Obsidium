@@ -11,7 +11,8 @@
 #include "VulkanFrameContext.h"
 #include "VulkanTexture.h"
 #include "../../../include/window/Window.h"
-#include "../../../include/assets/MeshManager.h"
+#include "../../../include/assets/AssetManager.h"
+#include "world/scene/Camera.h"
 
 namespace obsidium::vulkan {
 
@@ -42,7 +43,7 @@ void VulkanRenderer::destroy() {
 
 
 void VulkanRenderer::submitPacket(rhi::RenderPacket& packet) {
-    executeFrameContext(frameContexts[frameIndex], packet);
+    renderOntoSwapChain(packet);
     frameIndex =  (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
@@ -227,12 +228,9 @@ void transitionImageLayout(
     commandBuffer.pipelineBarrier2(dependencyInfo);
 }
 
-void VulkanRenderer::executeFrameContext(VulkanFrameContext& frameContext, rhi::RenderPacket& renderPacket) const {
-    rhi::UniformBufferObject ubo{};
-    ubo.proj = renderPacket.cameraTransform.camera.getProjectionMat(
-        static_cast<float>(swapChain->getExtent().width) / static_cast<float>(swapChain->getExtent().height));
-    ubo.proj[1][1] *= -1;
-    ubo.view = renderPacket.cameraTransform.view;
+void VulkanRenderer::begin() {
+    const auto& frameContext = frameContexts[frameIndex];
+
     auto fenceResult = device->getDevice().waitForFences(*frameContext.inFlightFence, vk::True, UINT64_MAX);
     if (fenceResult != vk::Result::eSuccess) {
         throw std::runtime_error("failed to wait for fence");
@@ -240,6 +238,7 @@ void VulkanRenderer::executeFrameContext(VulkanFrameContext& frameContext, rhi::
 
     auto [result, imageIndex] = swapChain->getHandle().acquireNextImage(UINT64_MAX,
         frameContext.presentCompleteSemaphore, nullptr);
+    swapChain->imageIndex = imageIndex;
 
     if (result == vk::Result::eErrorOutOfDateKHR) {
         resize();
@@ -289,24 +288,14 @@ void VulkanRenderer::executeFrameContext(VulkanFrameContext& frameContext, rhi::
     frameContext.commandBuffer.setScissor(0, vk::Rect2D(vk::Offset2D(0,0), swapChain->getExtent()));
     frameContext.commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout->getHandle(), 0, *frameContext.descriptorSet, nullptr);
 
-    auto* vertexBuffer = static_cast<VulkanBuffer*>(renderPacket.assetManager->getVertexBuffer());
-    auto* indexBuffer = static_cast<VulkanBuffer*>(renderPacket.assetManager->getIndexBuffer());
-    frameContext.commandBuffer.bindVertexBuffers(0, *vertexBuffer->getBuffer(), {0});
-    frameContext.commandBuffer.bindIndexBuffer(*indexBuffer->getBuffer(), 0, vk::IndexType::eUint32);
+}
 
-    for (rhi::Renderable renderable : renderPacket.renderables) {
-        GPUMesh mesh = renderPacket.assetManager->getMesh(renderable.meshID);
-        if (mesh.hash == ~0) continue;
-        ubo.model = renderable.model;
-        frameContext.uniformBuffer->write(&ubo, sizeof(ubo), 0);
-        frameContext.commandBuffer.drawIndexed(mesh.indexCount, 1,
-            mesh.indexRegion.offset * sizeof(Index), mesh.vertexRegion.offset, 0);
-    }
-
+void VulkanRenderer::end() {
+    const auto& frameContext = frameContexts[frameIndex];
     frameContext.commandBuffer.endRendering();
 
     transitionImageLayout(frameContext.commandBuffer,
-        swapChain->getImages()[imageIndex],
+        swapChain->getImages()[swapChain->imageIndex],
         vk::ImageLayout::eColorAttachmentOptimal,
         vk::ImageLayout::ePresentSrcKHR,
         vk::AccessFlagBits2::eColorAttachmentWrite,
@@ -328,22 +317,20 @@ void VulkanRenderer::executeFrameContext(VulkanFrameContext& frameContext, rhi::
         .commandBufferCount = 1,
         .pCommandBuffers = &*frameContext.commandBuffer,
         .signalSemaphoreCount = 1,
-        .pSignalSemaphores = &*swapChain->getPresentCompleteSemaphores()[imageIndex]
+        .pSignalSemaphores = &*swapChain->getPresentCompleteSemaphores()[swapChain->imageIndex]
     };
 
     device->getGraphicsQueue().submit(submitInfo, *frameContext.inFlightFence);
 
     const vk::PresentInfoKHR presentInfo{
         .waitSemaphoreCount = 1,
-        .pWaitSemaphores = &*swapChain->getPresentCompleteSemaphores()[imageIndex],
+        .pWaitSemaphores = &*swapChain->getPresentCompleteSemaphores()[swapChain->imageIndex],
         .swapchainCount = 1,
         .pSwapchains = &*swapChain->getHandle(),
-        .pImageIndices = &imageIndex
+        .pImageIndices = &swapChain->imageIndex
     };
 
-    result = device->getGraphicsQueue().presentKHR(presentInfo);
-
-    if (result == vk::Result::eSuboptimalKHR || result == vk::Result::eErrorOutOfDateKHR) {
+    if (const vk::Result result = device->getGraphicsQueue().presentKHR(presentInfo); result == vk::Result::eSuboptimalKHR || result == vk::Result::eErrorOutOfDateKHR) {
         resize();
     }
     else {
@@ -352,7 +339,7 @@ void VulkanRenderer::executeFrameContext(VulkanFrameContext& frameContext, rhi::
 }
 
 void VulkanRenderer::createFrameContexts() {
-    VulkanCommandBuffers commandBuffers = VulkanCommandBuffers(*device, *commandPool, MAX_FRAMES_IN_FLIGHT);
+    auto commandBuffers = VulkanCommandBuffers(*device, *commandPool, MAX_FRAMES_IN_FLIGHT);
 
     std::vector<std::unique_ptr<VulkanBuffer>> uniformBuffers;
     uniformBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
@@ -374,6 +361,34 @@ void VulkanRenderer::createFrameContexts() {
         };
         frameContexts.emplace_back(std::move(frameContext));
     }
+}
+
+
+void VulkanRenderer::renderOntoSwapChain(const rhi::RenderPacket& renderPacket) {
+    begin();
+
+    const auto& frameContext = frameContexts[frameIndex];
+    rhi::UniformBufferObject ubo{};
+    ubo.proj = renderPacket.cameraTransform.camera->getProjectionMat(
+        static_cast<float>(swapChain->getExtent().width) / static_cast<float>(swapChain->getExtent().height));
+    ubo.proj[1][1] *= -1;
+    ubo.view = renderPacket.cameraTransform.view;
+
+    auto* vertexBuffer = static_cast<VulkanBuffer*>(renderPacket.assetManager->getVertexBuffer());
+    auto* indexBuffer = static_cast<VulkanBuffer*>(renderPacket.assetManager->getIndexBuffer());
+    frameContext.commandBuffer.bindVertexBuffers(0, *vertexBuffer->getBuffer(), {0});
+    frameContext.commandBuffer.bindIndexBuffer(*indexBuffer->getBuffer(), 0, vk::IndexType::eUint32);
+
+    for (const rhi::Renderable renderable : renderPacket.renderables) {
+        const GPUMesh mesh = renderPacket.assetManager->getMesh(renderable.meshID);
+        if (mesh.hash == ~0) continue;
+        ubo.model = renderable.model;
+        frameContext.uniformBuffer->write(&ubo, sizeof(ubo), 0);
+        frameContext.commandBuffer.drawIndexed(mesh.indexCount, 1,
+            mesh.indexRegion.offset * sizeof(Index), mesh.vertexRegion.offset, 0);
+    }
+
+    end();
 }
 
 }

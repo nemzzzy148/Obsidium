@@ -13,10 +13,22 @@ namespace obsidium::vulkan {
 
 class VulkanDescriptorSetLayout {
 public:
-    VulkanDescriptorSetLayout(VulkanDevice& device);
-    vk::raii::DescriptorSetLayout& getHandle() { return descriptorSetLayout; }
+    VulkanDescriptorSetLayout(VulkanDevice& device, uint32_t maxSamplers, uint32_t maxTextures);
+    vk::raii::DescriptorSetLayout& getUnformSetLayout() { return uniformSetLayout; }
+    vk::raii::DescriptorSetLayout& getSamplerSetLayout() { return samplerSetLayout; }
+    vk::raii::DescriptorSetLayout& getTextureSetLayout() { return textureSetLayout; }
+
+    static constexpr vk::DescriptorBindingFlags variableFlags =
+        vk::DescriptorBindingFlagBits::ePartiallyBound |
+        vk::DescriptorBindingFlagBits::eVariableDescriptorCount |
+        vk::DescriptorBindingFlagBits::eUpdateAfterBind;
 private:
-    vk::raii::DescriptorSetLayout descriptorSetLayout = nullptr;
+    void createUniformSetLayout(VulkanDevice& device);
+    vk::raii::DescriptorSetLayout uniformSetLayout = nullptr;
+    void createSamplerSetLayout(VulkanDevice& device, uint32_t maxSamplers);
+    vk::raii::DescriptorSetLayout samplerSetLayout = nullptr;
+    void createTextureSetLayout(VulkanDevice& device, uint32_t maxTextures);
+    vk::raii::DescriptorSetLayout textureSetLayout = nullptr;
 };
 
 class VulkanPipelineLayout {
@@ -34,6 +46,13 @@ public:
     vk::raii::Pipeline& getHandle() { return pipeline; }
 private:
     vk::raii::Pipeline pipeline = nullptr;
+};
+
+class VulkanPipelineCache {
+    VulkanPipelineCache() = default;
+    VulkanPipeline& getPipeline(uint32_t index);
+private:
+    std::vector<VulkanPipeline> pipelines;
 };
 
 }

@@ -9,21 +9,67 @@
 
 namespace obsidium::vulkan {
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(VulkanDevice& device) {
-    // descriptor set layout
-    vk::DescriptorSetLayoutBinding binding {
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(VulkanDevice& device, const uint32_t maxSamplers, const uint32_t maxTextures) {
+    createUniformSetLayout(device);
+    createSamplerSetLayout(device, maxSamplers);
+    createTextureSetLayout(device, maxTextures);
+}
+
+void VulkanDescriptorSetLayout::createUniformSetLayout(VulkanDevice &device) {
+    const vk::DescriptorSetLayoutBinding binding{
         .binding = 0,
         .descriptorType = vk::DescriptorType::eUniformBuffer,
         .descriptorCount = 1,
         .stageFlags = vk::ShaderStageFlagBits::eVertex
     };
+    const vk::DescriptorSetLayoutCreateInfo createInfo{
+        .flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool,
+        .bindingCount = 1,
+        .pBindings = &binding
+    };
+    uniformSetLayout = vk::raii::DescriptorSetLayout(device.getDevice(), createInfo);
+}
 
-    vk::DescriptorSetLayoutCreateInfo layoutInfo{
-        .bindingCount = 1, // change if bigger
+void VulkanDescriptorSetLayout::createSamplerSetLayout(VulkanDevice &device, const uint32_t maxSamplers) {
+    const vk::DescriptorSetLayoutBinding binding{
+        .binding = 0,
+        .descriptorType = vk::DescriptorType::eSampler,
+        .descriptorCount = maxSamplers,
+        .stageFlags = vk::ShaderStageFlagBits::eFragment
+    };
+    vk::DescriptorSetLayoutBindingFlagsCreateInfo flagsInfo{
+        .bindingCount = 1,
+        .pBindingFlags = &variableFlags
+    };
+    const vk::DescriptorSetLayoutCreateInfo createInfo{
+        .pNext = &flagsInfo,
+        .flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool,
+        .bindingCount = 1,
         .pBindings = &binding
     };
 
-    descriptorSetLayout = vk::raii::DescriptorSetLayout(device.getDevice(), layoutInfo);
+    samplerSetLayout = vk::raii::DescriptorSetLayout(device.getDevice(), createInfo);
+}
+
+void VulkanDescriptorSetLayout::createTextureSetLayout(VulkanDevice &device, const uint32_t maxTextures) {
+    const vk::DescriptorSetLayoutBinding binding{
+        .binding = 0,
+        .descriptorType = vk::DescriptorType::eSampledImage,
+        .descriptorCount = maxTextures,
+        .stageFlags = vk::ShaderStageFlagBits::eFragment
+    };
+    vk::DescriptorSetLayoutBindingFlagsCreateInfo flagsInfo{
+        .bindingCount = 1,
+        .pBindingFlags = &variableFlags
+    };
+    const vk::DescriptorSetLayoutCreateInfo createInfo{
+        .pNext = &flagsInfo,
+        .flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool,
+        .bindingCount = 1,
+        .pBindings = &binding
+    };
+
+    textureSetLayout = vk::raii::DescriptorSetLayout(device.getDevice(), createInfo);
 }
 
 VulkanPipelineLayout::VulkanPipelineLayout(VulkanDevice& device, VulkanDescriptorSetLayout& descriptorSetLayout) {
@@ -33,9 +79,11 @@ VulkanPipelineLayout::VulkanPipelineLayout(VulkanDevice& device, VulkanDescripto
         .size = sizeof(PushConstants)
     };
 
-    vk::PipelineLayoutCreateInfo pipelineLayoutInfo{
-        .setLayoutCount = 1,
-        .pSetLayouts = &*descriptorSetLayout.getHandle(),
+    std::array<vk::DescriptorSetLayout, 3> layouts = {{*descriptorSetLayout.getUnformSetLayout(), *descriptorSetLayout.getSamplerSetLayout(), *descriptorSetLayout.getTextureSetLayout()}};
+
+    const vk::PipelineLayoutCreateInfo pipelineLayoutInfo{
+        .setLayoutCount = 3,
+        .pSetLayouts = layouts.data(),
         .pushConstantRangeCount = 1,
         .pPushConstantRanges = &pushRange
     };

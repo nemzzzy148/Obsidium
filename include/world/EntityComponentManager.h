@@ -7,6 +7,7 @@
 
 #include "SparseSet.h"
 #include "scene/Components.h"
+#include "scene/Entity.h"
 
 namespace obsidium {
 
@@ -27,13 +28,19 @@ public:
     bool hasComponent(EntityID id);
 
     template<typename T>
+    void enableComponent(bool enable = true);
+
+    template<typename T>
     void removeComponent(EntityID id);
-private:
+
     template<typename T>
     SparseSet<T>& getSet();
 
+    void hi();
+private:
     IDSystem<EntityID> idSystem;
 
+    SparseSet<EntityComponent> dataSet;
     SparseSet<TagComponent> tagSet;
     SparseSet<TransformComponent> transformSet;
     SparseSet<MeshComponent> meshSet;

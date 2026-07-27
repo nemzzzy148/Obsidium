@@ -7,13 +7,11 @@
 namespace obsidium {
 
 Engine::Engine() {
-    assetIDSystem = std::make_unique<IDSystem<AssetID>>();
     m_Window = Window::create();
     ShaderInstance::initialize();
     m_Render = Renderer::create(m_Window.get(), nullptr);
-    meshManager = MeshManager::create(*m_Render);
-    m_Render->backend->assetManager = meshManager.get();
-    m_SceneManager = SceneManager::create(meshManager.get());
+    assetManager = std::make_unique<AssetManager>(m_Render.get());
+    world = std::make_unique<World>();
 }
 
 Engine::~Engine() {
@@ -21,7 +19,7 @@ Engine::~Engine() {
 }
 
 void Engine::update() const {
-    renderer().renderScene(activeScene());
+    world->updateSystems();
 }
 
 }

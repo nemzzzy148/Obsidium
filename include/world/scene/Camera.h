@@ -37,9 +37,4 @@ private:
     float aspectRatio = 1.0f;
 };
 
-struct CameraTransform {
-    glm::mat4 view;
-    Camera& camera;
-};
-
 }

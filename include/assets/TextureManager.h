@@ -6,10 +6,11 @@
 #include <memory>
 
 #include "../../src/utils/IDSystem.h"
-#include "../graphics/Renderer.h"
 #include "../graphics/Texture.h"
 
 namespace obsidium {
+
+class Renderer;
 
 class TextureManager {
 public:

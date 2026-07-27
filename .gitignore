@@ -2,3 +2,4 @@ cmake-build-debug/
 .idea/
 thirdparty/
 .DS_Store
+.VSCodeCounter

@@ -38,7 +38,6 @@ public:
     IDSystem() = default;
     T allocate();
     void free(T id);
-
 private:
     std::vector<uint32_t> freeSlots;
     std::vector<uint32_t> versions;

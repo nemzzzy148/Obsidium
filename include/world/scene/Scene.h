@@ -8,66 +8,43 @@
 #include "Components.h"
 #include "Entity.h"
 #include "../../assets/MeshManager.h"
+#include "../EntityComponentManager.h"
 
 namespace obsidium {
-class Shape;
+
+class SceneManager;
 
 class Scene {
 public:
-    Scene();
-    Entity createGameObject();
-    void removeGameObject(const Entity& gameObject);
+    Scene(SceneManager* manager, uint32_t index);
 
-    [[nodiscard]] bool isGameObjectPresent(const Entity& gameObject) const;
+    [[nodiscard]] EntityID createEntity() const;
+    void destroyEntity(EntityID id) const;
 
-    void setTransform(const Entity& gameObject, const TransformComponent &newTransform);
-    [[nodiscard]] TransformComponent getTransform(const Entity& gameObject) const;
-    void setPosition(const Entity& gameObject, const glm::vec3& position);
-    [[nodiscard]] glm::vec3 getPosition(const Entity& gameObject) const;
-    void setRotation(const Entity& gameObject, const glm::vec3& rotation);
-    [[nodiscard]] glm::vec3 getRotation(const Entity& gameObject) const;
-    void setScale(const Entity& gameObject, const glm::vec3& scale);
-    [[nodiscard]] glm::vec3 getScale(const Entity& gameObject) const;
+    template<Components C, typename Component>
+    ComponentType<C>& addComponent(EntityID id, Component component);
 
-    [[nodiscard]] Entity getGameObjectWithTag(const std::string& tag) const;
-    void setTag(const Entity& gameObject, const std::string& tag);
-    [[nodiscard]] std::string getTag(const Entity& gameObject) const;
-    void removeTag(const Entity& gameObject);
-    [[nodiscard]] bool hasTag(const Entity& gameObject) const;
+    template<Components C>
+    ComponentType<C>& getComponent(EntityID id);
 
-    void setMesh(const Entity& gameObject, Mesh& data);
-    void setMesh(const Entity& gameObject, MeshHandle mesh);
-    [[nodiscard]] MeshHandle getMesh(const Entity& gameObject) const;
-    void removeMesh(const Entity& gameObject);
-    [[nodiscard]] bool hasMesh(const Entity& gameObject) const;
+    template<Components C>
+    [[nodiscard]] bool hasComponent(EntityID id) const;
 
-    void setMaterial(const Entity& gameObject, Image& image);
-    void setMaterial(const Entity& gameObject, TextureHandle textureHandle);
-    TextureHandle getMaterial(const Entity& gameObject) const;
-    void removeMaterial(const Entity& gameObject) const;
-    bool hasMaterial(const Entity& gameObject) const;
+    template<Components C>
+    void enableComponent(bool enable = true) const;
 
-
-    void setCamera(const Entity& gameObject, const Camera &camera);
-
-    [[nodiscard]] const Camera *getCamera(const Entity &gameObject) const;
-    void removeCamera(const Entity& gameObject);
-    [[nodiscard]] bool hasCamera(const Entity& gameObject) const;
-
-    void setPointer(const Entity& gameObject, void* pointer);
-    [[nodiscard]] void* getPointer(const Entity& gameObject) const;
-    void removePointer(const Entity& gameObject);
-    [[nodiscard]] bool hasPointer(const Entity& gameObject) const;
-
-    void setMainCamera(const Entity& gameObject);
-    [[nodiscard]] Entity getMainCamera() const;
+    template<Components C>
+    void removeComponent(EntityID id) const;
 private:
-    uint32_t sceneIndex = 0;
-    EntityID cameraObject;
+    uint32_t index = 0;
+    SceneManager* manager;
+};
 
-    rhi::RenderPacket createRenderPacket();
-
-    std::vector<EntityID> entities;
+struct SceneEntry {
+    std::string name;
+    uint32_t index;
+    std::vector<EntityID> ownedEntities;
+    EntityID mainCamera = InvalidEntityID;
 };
 
 }

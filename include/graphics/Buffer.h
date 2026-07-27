@@ -19,7 +19,7 @@ class Buffer {
 public:
     [[nodiscard]] size_t getSize() const;
 
-    void write(const void* data, size_t size, size_t offset);
+    void write(const void* data, size_t size, size_t offset = 0) const;
 private:
     Buffer() = default;
     std::unique_ptr<rhi::Buffer> buffer;

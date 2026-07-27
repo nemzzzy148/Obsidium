@@ -4,6 +4,8 @@
 
 #include "../../include/world/SparseSet.h"
 
+#include "world/scene/Components.h"
+
 namespace obsidium {
 
 template<typename Component>
@@ -21,7 +23,7 @@ void SparseSet<Component>::add(const EntityID id, Component component) {
         sparseSet[id.index] = entitySet.size() - 1;
     }
     else {
-        if (entitySet[sparseSet[id.index]].version >= id.version) return;
+        if (entitySet[sparseSet[id.index]].version > id.version) return;
         entitySet[sparseSet[id.index]] = id;
         denseData[sparseSet[id.index]] = std::move(component);
     }
@@ -30,15 +32,25 @@ void SparseSet<Component>::add(const EntityID id, Component component) {
 template<typename Component>
 void SparseSet<Component>::remove(const EntityID id) {
     if (!has(id)) return;
-    entitySet[sparseSet[id.index]] = entitySet[entitySet.size() - 1];
+    const uint32_t denseIdx = sparseSet[id.index];
+    const auto lastIdx  = static_cast<uint32_t>(entitySet.size() - 1);
+    const EntityID lastId   = entitySet[lastIdx];
+
+    entitySet[denseIdx] = lastId;
+    denseData[denseIdx] = std::move(denseData[lastIdx]);
+
     entitySet.pop_back();
-    denseData[sparseSet[id.index]] = denseData[denseData.size() - 1];
     denseData.pop_back();
+
     sparseSet[id.index] = InvalidEntityIndex;
+    if (denseIdx != lastIdx) {
+        sparseSet[lastId.index] = denseIdx;
+    }
 }
 
 template<typename Component>
 Component SparseSet<Component>::get(const EntityID id) {
+    if (!has(id)) return {};
     return denseData[sparseSet[id.index]];
 }
 
@@ -47,6 +59,13 @@ bool SparseSet<Component>::has(const EntityID id) const {
     if (id.index >= sparseSet.size()) return false;
     if (sparseSet[id.index] == InvalidEntityIndex) return false;
     return entitySet[sparseSet[id.index]] == id;
+}
+
+template<typename Component>
+void SparseSet<Component>::enable(const EntityID id, const bool enable) {
+    if (std::is_same_v<Component, TransformComponent>) return;
+    if (!has(id)) return;
+    denseData[sparseSet[id.index]].enable = enable;
 }
 
 }

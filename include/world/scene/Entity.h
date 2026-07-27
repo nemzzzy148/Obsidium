@@ -4,15 +4,14 @@
 
 #pragma once
 
-#include "world/World.h"
-
 namespace obsidium {
 
 class Scene;
+class World;
 
 class Entity {
 public:
-    explicit Entity(World& world);
+    explicit Entity(World& world, EntityID id);
 
     bool operator==(const Entity& gameObject) const {
         return gameObject.id == id;

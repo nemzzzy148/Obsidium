@@ -17,6 +17,10 @@ public:
     void remove(EntityID id);
     Component get(EntityID id);
     [[nodiscard]] bool has(EntityID id) const;
+    void enable(EntityID id, bool enable);
+
+    [[nodiscard]] const std::vector<EntityID>& getEntitySet() const { return entitySet; }
+    [[nodiscard]] const std::vector<Component>& getDataSet() const { return entitySet; }
 private:
     std::vector<EntityIndex> sparseSet;
 

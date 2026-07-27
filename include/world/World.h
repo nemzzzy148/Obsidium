@@ -8,18 +8,30 @@
 #include "EntityComponentManager.h"
 #include "System.h"
 #include "scene/SceneManager.h"
+#include "utils/Time.h"
 
 namespace obsidium {
 
 class World {
 public:
-    explicit World(IDSystem<EntityID>* idSystem);
+    World();
 
     void updateSystems(float dt) const;
+    void updateSystems() const;
+
+    [[nodiscard]] Scene activeScene() const;
+    [[nodiscard]] SceneManager& sceneManager() const;
+
+    [[nodiscard]] SystemManager& systemManager() const;
+
+    [[nodiscard]] EntityComponentManager& ECManager() const;
 private:
-    std::unique_ptr<EntityComponentManager> ECManager;
-    std::unique_ptr<SystemManager> systemManager;
-    std::unique_ptr<SceneManager> sceneManager;
+    std::unique_ptr<Time> m_Time;
+    std::unique_ptr<EntityComponentManager> m_ECManager;
+    std::unique_ptr<SystemManager> m_SystemManager;
+    std::unique_ptr<SceneManager> m_SceneManager;
+
+    friend class RenderSystem;
 };
 
 }

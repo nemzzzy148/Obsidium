@@ -19,6 +19,8 @@ public:
     std::vector<vk::raii::ImageView>& getImageViews() { return imageViews; }
     [[nodiscard]] vk::Extent2D getExtent() const { return extent; }
     std::vector<vk::raii::Semaphore>& getPresentCompleteSemaphores() { return presentCompleteSemaphores; };
+
+    uint32_t imageIndex = 0;
 private:
     VulkanDevice& device;
     VulkanSurface& surface;

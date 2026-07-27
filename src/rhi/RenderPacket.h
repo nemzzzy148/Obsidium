@@ -3,23 +3,33 @@
 //
 
 #pragma once
-#include "../../include/graphics/Mesh.h"
-#include "assets/AssetManager.h"
-#include "graphics/Texture.h"
-#include "world/scene/Camera.h"
+
+#include "../utils/IDSystem.h"
+
+namespace obsidium {
+
+class AssetManager;
+class Camera;
+
+}
 
 namespace obsidium::rhi {
 
+struct CameraTransform {
+    glm::mat4 view{};
+    Camera* camera = nullptr;
+};
+
 struct Renderable {
-    AssetID meshID;
-    AssetID textureID;
-    glm::mat4 model;
+    AssetID meshID = InvalidAssetID;
+    AssetID textureID = InvalidAssetID;
+    glm::mat4 model{};
 };
 
 struct RenderPacket {
     std::vector<Renderable> renderables;
     CameraTransform cameraTransform;
-    AssetManager* assetManager;
+    AssetManager* assetManager = nullptr;
 };
 
 }

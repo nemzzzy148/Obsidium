@@ -9,29 +9,31 @@
 
 #include "Scene.h"
 #include "../../assets/MeshManager.h"
+#include "../EntityComponentManager.h"
 
 namespace obsidium {
 
 class SceneManager {
 public:
-    void createScene(bool load = true);
+    explicit SceneManager(EntityComponentManager& ECManager, const std::string& sceneName = "scene");
 
+    uint32_t createScene(const std::string& sceneName, bool load = true);
+
+    Scene activeScene();
     [[nodiscard]] uint32_t activeSceneIndex() const;
+    [[nodiscard]] const std::string& activeSceneName() const;
     void loadScene(uint32_t sceneIndex);
-
-    [[nodiscard]] Scene& activeScene() const { return *scene; }
+    void loadScene(const std::string& sceneName);
 private:
-    SceneManager() = default;
-    static std::unique_ptr<SceneManager> create(MeshManager* meshManager);
+    void createSceneRequirements(uint32_t sceneIndex);
+    [[nodiscard]] EntityID createMainCamera(uint32_t sceneIndex) const;
 
-    [[nodiscard]] bool isIndexInScenes(uint32_t sceneIndex) const;
+    std::vector<SceneEntry> scenes;
+    uint32_t currentSceneIndex = 0;
 
-    std::vector<std::unique_ptr<Scene>> scenes;
-    uint sceneIndex = 0;
-    Scene* scene = nullptr;
+    EntityComponentManager& ECManager;
 
-    MeshManager* meshManager = nullptr;
-    friend class Engine;
+    friend class Scene;
 };
 
 }

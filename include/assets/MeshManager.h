@@ -7,12 +7,10 @@
 
 #include "../../src/utils/IDSystem.h"
 #include "../graphics/Mesh.h"
-#include "../graphics/Renderer.h"
 #include "../../src/rhi/Buffer.h"
+#include "../graphics/Renderer.h"
 
 namespace obsidium {
-
-class Renderer;
 
 class MeshManager {
 public:
