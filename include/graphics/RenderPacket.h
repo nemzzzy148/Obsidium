@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../utils/IDSystem.h"
+#include "glm/glm.hpp"
 
 namespace obsidium {
 

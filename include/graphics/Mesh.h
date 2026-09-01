@@ -36,8 +36,6 @@ struct GPUMesh {
 
     uint32_t vertexCount{};
     uint32_t indexCount{};
-
-    uint64_t hash = ~0;
 };
 
 struct PushConstants {

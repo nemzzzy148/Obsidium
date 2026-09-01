@@ -9,12 +9,11 @@
 
 namespace obsidium::vulkan {
 
-VulkanDescriptorPool::VulkanDescriptorPool(VulkanDevice &device, const uint32_t framesInFlight, const uint32_t maxSamplers, const uint32_t maxTextures) {
+VulkanUniformDescriptorPool::VulkanUniformDescriptorPool(VulkanDevice &device, const uint32_t framesInFlight) {
     createUniformPool(device, framesInFlight);
-    createBindlessPool(device, maxSamplers, maxTextures);
 }
 
-void VulkanDescriptorPool::createUniformPool(VulkanDevice &device, const uint32_t count) {
+void VulkanUniformDescriptorPool::createUniformPool(VulkanDevice &device, const uint32_t count) {
     const vk::DescriptorPoolSize poolSize{
         .type = vk::DescriptorType::eUniformBuffer,
         .descriptorCount = count
@@ -25,10 +24,14 @@ void VulkanDescriptorPool::createUniformPool(VulkanDevice &device, const uint32_
         .poolSizeCount = 1,
         .pPoolSizes = &poolSize
     };
-    uniformPool = vk::raii::DescriptorPool(device.getDevice(), poolInfo);
+    pool = vk::raii::DescriptorPool(device.getDevice(), poolInfo);
 }
 
-void VulkanDescriptorPool::createBindlessPool(VulkanDevice &device, const uint32_t maxSamplers, const uint32_t maxTextures) {
+VulkanBindlessDescriptorPool::VulkanBindlessDescriptorPool(VulkanDevice &device, const uint32_t maxSamplers, const uint32_t maxTextures) {
+    createBindlessPool(device, maxSamplers, maxTextures);
+}
+
+void VulkanBindlessDescriptorPool::createBindlessPool(VulkanDevice &device, const uint32_t maxSamplers, const uint32_t maxTextures) {
     const std::array<vk::DescriptorPoolSize, 2> poolSizes{{
         {
             .type = vk::DescriptorType::eSampler,
@@ -46,31 +49,30 @@ void VulkanDescriptorPool::createBindlessPool(VulkanDevice &device, const uint32
     bindlessPool = vk::raii::DescriptorPool(device.getDevice(), poolInfo);
 }
 
-VulkanDescriptorSets::VulkanDescriptorSets(VulkanDevice &device, VulkanDescriptorSetLayout &descriptorSetLayout,
-    VulkanDescriptorPool &descriptorPool, const std::vector<std::unique_ptr<VulkanBuffer>> &uniformBuffers,
-    const uint32_t framesInFlight, const uint32_t maxSamplers, const uint32_t maxTextures) {
-    createUniformSets(device, descriptorSetLayout, descriptorPool, uniformBuffers, framesInFlight);
-    createBindlessSet(device, descriptorSetLayout, descriptorPool, maxSamplers, maxTextures);
-
+VulkanUniformDescriptorSets::VulkanUniformDescriptorSets(VulkanDevice &device,
+    VulkanDescriptorSetLayout &descriptorSetLayout, VulkanUniformDescriptorPool &uniformPool,
+    const std::vector<std::unique_ptr<VulkanBuffer>> &uniformBuffers, const uint32_t framesInFlight, const uint32_t size,
+    const uint32_t offset) {
+    createUniformSets(device, descriptorSetLayout, uniformPool, uniformBuffers, framesInFlight, size, offset);
 }
 
-void VulkanDescriptorSets::createUniformSets(VulkanDevice &device, VulkanDescriptorSetLayout &descriptorSetLayout,
-                                             VulkanDescriptorPool &descriptorPool,
-                                             const std::vector<std::unique_ptr<VulkanBuffer>> &uniformBuffers,
-                                             const uint32_t framesInFlight) {
-    std::vector<vk::DescriptorSetLayout> layouts(framesInFlight, *descriptorSetLayout.getUnformSetLayout());
+void VulkanUniformDescriptorSets::createUniformSets(VulkanDevice &device,
+    VulkanDescriptorSetLayout &descriptorSetLayout, VulkanUniformDescriptorPool &uniformPool,
+    const std::vector<std::unique_ptr<VulkanBuffer>> &uniformBuffers, const uint32_t count, const uint32_t size,
+    const uint32_t offset) {
+    const std::vector layouts(count, *descriptorSetLayout.getUnformSetLayout());
     const vk::DescriptorSetAllocateInfo allocInfo{
-        .descriptorPool = *descriptorPool.getUniformPool(),
-        .descriptorSetCount = framesInFlight,
+        .descriptorPool = *uniformPool.getHandle(),
+        .descriptorSetCount = count,
         .pSetLayouts = layouts.data()
     };
     uniformSet = device.getDevice().allocateDescriptorSets(allocInfo);
 
-    for (size_t i = 0; i < framesInFlight; i++) {
+    for (size_t i = 0; i < count; i++) {
         vk::DescriptorBufferInfo bufferInfo{
             .buffer = uniformBuffers[i]->getBuffer(),
-            .offset = 0,
-            .range = sizeof(rhi::UniformBufferObject)
+            .offset = offset,
+            .range = size
         };
 
         vk::WriteDescriptorSet descriptorWrite{
@@ -78,7 +80,7 @@ void VulkanDescriptorSets::createUniformSets(VulkanDevice &device, VulkanDescrip
             .dstBinding = 0,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = vk::DescriptorType::eUniformBuffer,
+            .descriptorType = vk::DescriptorType::eUniformBufferDynamic,
             .pBufferInfo = &bufferInfo
         };
 
@@ -86,19 +88,54 @@ void VulkanDescriptorSets::createUniformSets(VulkanDevice &device, VulkanDescrip
     }
 }
 
-void VulkanDescriptorSets::createBindlessSet(VulkanDevice &device, VulkanDescriptorSetLayout &descriptorSetLayout,
-    VulkanDescriptorPool &descriptorPool, const uint32_t maxSamplers, const uint32_t maxTextures) {
+VulkanBindlessDescriptorSets::VulkanBindlessDescriptorSets(VulkanDevice &device, VulkanDescriptorSetLayout &descriptorSetLayout,
+        VulkanBindlessDescriptorPool &bindlessPool, const uint32_t maxSamplers, const uint32_t maxTextures) : device(device) {
+    createBindlessSet(descriptorSetLayout, bindlessPool, maxSamplers, maxTextures);
+}
 
-    std::array<vk::DescriptorSetLayout, 2> layouts{ *descriptorSetLayout.getSamplerSetLayout(), *descriptorSetLayout.getTextureSetLayout() };
+void VulkanBindlessDescriptorSets::updateTextureSet(const vk::raii::ImageView &view, const uint32_t index) const {
+    const vk::DescriptorImageInfo imageInfo{
+        .imageView = view,
+        .imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal
+    };
+    const vk::WriteDescriptorSet write{
+        .dstSet = *textureSet,
+        .dstBinding = 2,
+        .dstArrayElement = index,
+        .descriptorCount = 1,
+        .descriptorType = vk::DescriptorType::eSampledImage,
+        .pImageInfo = &imageInfo
+    };
+    device.getDevice().updateDescriptorSets(write, nullptr);
+}
 
-    std::array<uint32_t, 2> variableCount{maxSamplers, maxTextures};
+void VulkanBindlessDescriptorSets::updateSamplerSet(const vk::raii::Sampler &sampler, uint32_t index) const {
+    const vk::DescriptorImageInfo samplerInfo{
+        .sampler = sampler
+    };
+    const vk::WriteDescriptorSet write{
+        .dstSet = *samplerSet,
+        .dstBinding = 1,
+        .descriptorCount = 1,
+        .descriptorType = vk::DescriptorType::eSampler,
+        .pImageInfo = &samplerInfo
+    };
+    device.getDevice().updateDescriptorSets(write, nullptr);
+}
+
+void VulkanBindlessDescriptorSets::createBindlessSet(VulkanDescriptorSetLayout &descriptorSetLayout,
+                                                     VulkanBindlessDescriptorPool &bindlessPool, const uint32_t maxSamplers, const uint32_t maxTextures) {
+
+    std::array layouts{ *descriptorSetLayout.getSamplerSetLayout(), *descriptorSetLayout.getTextureSetLayout() };
+
+    std::array variableCount{maxSamplers, maxTextures};
     const vk::DescriptorSetVariableDescriptorCountAllocateInfo variableInfo{
         .descriptorSetCount = static_cast<uint32_t>(variableCount.size()),
         .pDescriptorCounts = variableCount.data()
     };
     const vk::DescriptorSetAllocateInfo allocInfo{
         .pNext = &variableInfo,
-        .descriptorPool = *descriptorPool.getBindlessPool(),
+        .descriptorPool = *bindlessPool.getHandle(),
         .descriptorSetCount = static_cast<uint32_t>(layouts.size()),
         .pSetLayouts =  layouts.data()
     };
@@ -109,4 +146,3 @@ void VulkanDescriptorSets::createBindlessSet(VulkanDevice &device, VulkanDescrip
 }
 
 }
-

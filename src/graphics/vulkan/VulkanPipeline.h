@@ -8,12 +8,24 @@
 
 #include "VulkanDevice.h"
 #include "VulkanSwapChain.h"
+#include "../../rhi/Shader.h"
 
 namespace obsidium::vulkan {
 
-class VulkanDescriptorSetLayout {
+class VulkanUniformDescriptorSetLayout {
 public:
-    VulkanDescriptorSetLayout(VulkanDevice& device, uint32_t maxSamplers, uint32_t maxTextures);
+    explicit VulkanUniformDescriptorSetLayout(VulkanDevice& device);
+
+    vk::raii::DescriptorSetLayout& getUnformSetLayout() { return uniformSetLayout; }
+protected:
+    void createUniformSetLayout(VulkanDevice& device);
+    vk::raii::DescriptorSetLayout uniformSetLayout = nullptr;
+};
+
+class VulkanDescriptorSetLayout : public VulkanUniformDescriptorSetLayout {
+public:
+    explicit VulkanDescriptorSetLayout(VulkanDevice& device, uint32_t maxSamplers, uint32_t maxTextures);
+    explicit VulkanDescriptorSetLayout(VulkanDevice& device);
     vk::raii::DescriptorSetLayout& getUnformSetLayout() { return uniformSetLayout; }
     vk::raii::DescriptorSetLayout& getSamplerSetLayout() { return samplerSetLayout; }
     vk::raii::DescriptorSetLayout& getTextureSetLayout() { return textureSetLayout; }
@@ -23,8 +35,6 @@ public:
         vk::DescriptorBindingFlagBits::eVariableDescriptorCount |
         vk::DescriptorBindingFlagBits::eUpdateAfterBind;
 private:
-    void createUniformSetLayout(VulkanDevice& device);
-    vk::raii::DescriptorSetLayout uniformSetLayout = nullptr;
     void createSamplerSetLayout(VulkanDevice& device, uint32_t maxSamplers);
     vk::raii::DescriptorSetLayout samplerSetLayout = nullptr;
     void createTextureSetLayout(VulkanDevice& device, uint32_t maxTextures);
@@ -33,6 +43,7 @@ private:
 
 class VulkanPipelineLayout {
 public:
+    VulkanPipelineLayout(VulkanDevice& device, VulkanUniformDescriptorSetLayout& descriptorSetLayout);
     VulkanPipelineLayout(VulkanDevice& device, VulkanDescriptorSetLayout& descriptorSetLayout);
     vk::raii::PipelineLayout& getHandle() { return pipelineLayout; }
 private:
@@ -46,13 +57,6 @@ public:
     vk::raii::Pipeline& getHandle() { return pipeline; }
 private:
     vk::raii::Pipeline pipeline = nullptr;
-};
-
-class VulkanPipelineCache {
-    VulkanPipelineCache() = default;
-    VulkanPipeline& getPipeline(uint32_t index);
-private:
-    std::vector<VulkanPipeline> pipelines;
 };
 
 }

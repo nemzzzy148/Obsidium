@@ -8,14 +8,11 @@
 #include "../shader/Shader.h"
 
 namespace obsidium::vulkan {
-
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(VulkanDevice& device, const uint32_t maxSamplers, const uint32_t maxTextures) {
+VulkanUniformDescriptorSetLayout::VulkanUniformDescriptorSetLayout(VulkanDevice &device) {
     createUniformSetLayout(device);
-    createSamplerSetLayout(device, maxSamplers);
-    createTextureSetLayout(device, maxTextures);
 }
 
-void VulkanDescriptorSetLayout::createUniformSetLayout(VulkanDevice &device) {
+void VulkanUniformDescriptorSetLayout::createUniformSetLayout(VulkanDevice &device) {
     const vk::DescriptorSetLayoutBinding binding{
         .binding = 0,
         .descriptorType = vk::DescriptorType::eUniformBuffer,
@@ -30,9 +27,20 @@ void VulkanDescriptorSetLayout::createUniformSetLayout(VulkanDevice &device) {
     uniformSetLayout = vk::raii::DescriptorSetLayout(device.getDevice(), createInfo);
 }
 
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(VulkanDevice& device, const uint32_t maxSamplers, const uint32_t maxTextures) :
+    VulkanUniformDescriptorSetLayout(device) {
+
+    createSamplerSetLayout(device, maxSamplers);
+    createTextureSetLayout(device, maxTextures);
+}
+
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(VulkanDevice &device) :
+    VulkanUniformDescriptorSetLayout(device) {}
+
 void VulkanDescriptorSetLayout::createSamplerSetLayout(VulkanDevice &device, const uint32_t maxSamplers) {
+    if (maxSamplers == 0) return;
     const vk::DescriptorSetLayoutBinding binding{
-        .binding = 0,
+        .binding = 1,
         .descriptorType = vk::DescriptorType::eSampler,
         .descriptorCount = maxSamplers,
         .stageFlags = vk::ShaderStageFlagBits::eFragment
@@ -52,8 +60,9 @@ void VulkanDescriptorSetLayout::createSamplerSetLayout(VulkanDevice &device, con
 }
 
 void VulkanDescriptorSetLayout::createTextureSetLayout(VulkanDevice &device, const uint32_t maxTextures) {
+    if (maxTextures == 0) return;
     const vk::DescriptorSetLayoutBinding binding{
-        .binding = 0,
+        .binding = 2,
         .descriptorType = vk::DescriptorType::eSampledImage,
         .descriptorCount = maxTextures,
         .stageFlags = vk::ShaderStageFlagBits::eFragment
@@ -72,22 +81,26 @@ void VulkanDescriptorSetLayout::createTextureSetLayout(VulkanDevice &device, con
     textureSetLayout = vk::raii::DescriptorSetLayout(device.getDevice(), createInfo);
 }
 
-VulkanPipelineLayout::VulkanPipelineLayout(VulkanDevice& device, VulkanDescriptorSetLayout& descriptorSetLayout) {
-    vk::PushConstantRange pushRange{
-        .stageFlags = vk::ShaderStageFlagBits::eFragment,
-        .offset = 0,
-        .size = sizeof(PushConstants)
+VulkanPipelineLayout::VulkanPipelineLayout(VulkanDevice &device, VulkanUniformDescriptorSetLayout &descriptorSetLayout) {
+    const vk::PipelineLayoutCreateInfo createInfo{
+        .setLayoutCount = 1,
+        .pSetLayouts = &*descriptorSetLayout.getUnformSetLayout(),
+        .pushConstantRangeCount = 0
     };
 
-    std::array<vk::DescriptorSetLayout, 3> layouts = {{*descriptorSetLayout.getUnformSetLayout(), *descriptorSetLayout.getSamplerSetLayout(), *descriptorSetLayout.getTextureSetLayout()}};
+    pipelineLayout = vk::raii::PipelineLayout(device.getDevice(), createInfo);
+}
 
-    const vk::PipelineLayoutCreateInfo pipelineLayoutInfo{
-        .setLayoutCount = 3,
+VulkanPipelineLayout::VulkanPipelineLayout(VulkanDevice &device, VulkanDescriptorSetLayout &descriptorSetLayout) {
+    std::array layouts{*descriptorSetLayout.getUnformSetLayout(),
+        *descriptorSetLayout.getSamplerSetLayout(), *descriptorSetLayout.getTextureSetLayout()};
+    const vk::PipelineLayoutCreateInfo createInfo{
+        .setLayoutCount = static_cast<uint32_t>(layouts.size()),
         .pSetLayouts = layouts.data(),
-        .pushConstantRangeCount = 1,
-        .pPushConstantRanges = &pushRange
+        .pushConstantRangeCount = 0
     };
-    pipelineLayout = vk::raii::PipelineLayout(device.getDevice(), pipelineLayoutInfo);
+
+    pipelineLayout = vk::raii::PipelineLayout(device.getDevice(), createInfo);
 }
 
 VulkanPipeline::VulkanPipeline(VulkanDevice &device, VulkanSwapChain& swapChain, VulkanPipelineLayout& pipelineLayout, std::vector<char> code) {
@@ -102,12 +115,12 @@ VulkanPipeline::VulkanPipeline(VulkanDevice &device, VulkanSwapChain& swapChain,
     vk::PipelineShaderStageCreateInfo vertInfo{
         .stage = vk::ShaderStageFlagBits::eVertex,
         .module = shaderModule,
-        .pName = ShaderInstance::vertexFunctionName.c_str()
+        .pName = ShaderCompiler::vertexFunctionName.c_str()
     };
     vk::PipelineShaderStageCreateInfo fragInfo{
         .stage = vk::ShaderStageFlagBits::eFragment,
         .module = shaderModule,
-        .pName = ShaderInstance::fragmentFunctionName.c_str()
+        .pName = ShaderCompiler::fragmentFunctionName.c_str()
     };
     vk::PipelineShaderStageCreateInfo shaderStages[] = {vertInfo, fragInfo};
 

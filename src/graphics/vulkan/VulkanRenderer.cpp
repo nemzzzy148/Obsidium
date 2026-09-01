@@ -12,6 +12,7 @@
 #include "VulkanTexture.h"
 #include "../../../include/window/Window.h"
 #include "../../../include/assets/AssetManager.h"
+#include "../../utils/Logger.h"
 #include "world/scene/Camera.h"
 
 namespace obsidium::vulkan {
@@ -27,24 +28,12 @@ VulkanRenderer::VulkanRenderer(Window* window) {
     int width, height;
     window->getFrameBufferSize(&width, &height);
     swapChain = std::make_unique<VulkanSwapChain>(*device, *surface, width, height);
-
-    descriptorSetLayout = std::make_unique<VulkanDescriptorSetLayout>(*device);
-    pipelineLayout = std::make_unique<VulkanPipelineLayout>(*device, *descriptorSetLayout);
-    pipeline = std::make_unique<VulkanPipeline>(*device, *swapChain, *pipelineLayout, ShaderInstance::generateCode("../shader/mainShader.slang"));
-    descriptorPool = std::make_unique<VulkanDescriptorPool>(*device, MAX_FRAMES_IN_FLIGHT);
     commandPool = std::make_unique<VulkanCommandPool>(*device, device->getGraphicsFamily());
-
     createFrameContexts();
 }
 
 void VulkanRenderer::destroy() {
     device->getDevice().waitIdle();
-}
-
-
-void VulkanRenderer::submitPacket(rhi::RenderPacket& packet) {
-    renderOntoSwapChain(packet);
-    frameIndex =  (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void VulkanRenderer::resize(const uint32_t width, const uint32_t height) {
@@ -62,59 +51,23 @@ void VulkanRenderer::resize() const {
     swapChain->recreate(width, height);
 }
 
-uint32_t VulkanRenderer::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const {
-    const vk::PhysicalDeviceMemoryProperties memoryProperties = device->getPhysicalDevice().getMemoryProperties();
-
-    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            return i;
-        }
-    }
-
-    throw std::runtime_error("failed to find suitable memory type");
+std::unique_ptr<VulkanBuffer> VulkanRenderer::createVulkanBuffer(const size_t size, const BufferType bufferType) const {
+    return std::move(device->createVulkanBuffer(size, bufferType));
 }
 
-std::unique_ptr<VulkanBuffer> VulkanRenderer::createVulkanBuffer(size_t size, BufferType bufferType) const {
-    vk::BufferUsageFlags usage;
-
-    switch (bufferType) {
-        case BufferType::IndexBuffer:
-            usage = vk::BufferUsageFlagBits::eIndexBuffer;
-            break;
-        case BufferType::VertexBuffer:
-            usage = vk::BufferUsageFlagBits::eVertexBuffer;
-            break;
-        case BufferType::UniformBuffer:
-            usage = vk::BufferUsageFlagBits::eUniformBuffer;
-            break;
-    }
-    vk::BufferCreateInfo bufferInfo{
-        .size = size,
-        .usage = usage,
-        .sharingMode = vk::SharingMode::eExclusive
-    };
-    vk::raii::Buffer buffer = vk::raii::Buffer(device->getDevice(), bufferInfo);
-
-    vk::MemoryRequirements memoryRequirements = buffer.getMemoryRequirements();
-    vk::MemoryAllocateInfo allocInfo{
-        .allocationSize = memoryRequirements.size,
-        .memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, bufferAllocationMemoryProperties)
-    };
-    vk::raii::DeviceMemory bufferMemory = vk::raii::DeviceMemory(device->getDevice(), allocInfo);
-    buffer.bindMemory(bufferMemory, 0);
-
-    return std::make_unique<VulkanBuffer>(std::move(buffer), std::move(bufferMemory),
-        bufferMemory.mapMemory(0, size), size);
+std::unique_ptr<rhi::Buffer> VulkanRenderer::createBuffer(const size_t size, const BufferType bufferType) {
+    return std::move(device->createVulkanBuffer(size, bufferType));
 }
 
-std::unique_ptr<rhi::Buffer> VulkanRenderer::createBuffer(size_t size, BufferType bufferType) {
-    return std::move(createVulkanBuffer(size, bufferType));
+std::unique_ptr<rhi::Texture> VulkanRenderer::createTexture(const int width, const int height,
+        const TextureUsage textureUsage, const TextureFormat format) {
+    return std::move(device->createTexture(width, height, textureUsage, format));
 }
 
 void transitionImageLayout(const vk::raii::CommandBuffer &commandBuffer,
                            const vk::raii::Image &image,
-                           vk::ImageLayout oldLayout,
-                           vk::ImageLayout newLayout) {
+                           const vk::ImageLayout oldLayout,
+                           const vk::ImageLayout newLayout) {
     vk::ImageMemoryBarrier barrier{
         .oldLayout = oldLayout,
         .newLayout = newLayout,
@@ -142,52 +95,14 @@ void transitionImageLayout(const vk::raii::CommandBuffer &commandBuffer,
         dstStage = vk::PipelineStageFlagBits::eFragmentShader;
     }
     else {
-        throw std::runtime_error("unsupported layout transition!");
+        LOG_FATAL("unsupported vulkan layout transition!");
     }
 
     commandBuffer.pipelineBarrier(srcStage, dstStage, {}, {}, {}, barrier);
 }
 
-std::unique_ptr<rhi::Texture> VulkanRenderer::createTexture(unsigned char* data, const int width, const int height) {
-    constexpr auto imageFormat = vk::Format::eR8G8B8A8Srgb;
-    const vk::ImageCreateInfo imageInfo{
-        .imageType = vk::ImageType::e2D,
-        .format = imageFormat,
-        .extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1},
-        .mipLevels = 1,
-        .arrayLayers = 1,
-        .samples = vk::SampleCountFlagBits::e1,
-        .tiling = vk::ImageTiling::eOptimal,
-        .usage = vk::ImageUsageFlagBits::eSampled,
-        .sharingMode = vk::SharingMode::eExclusive
-    };
+std::unique_ptr<rhi::Shader> VulkanRenderer::createShader(std::vector<char> code) {
 
-    auto image = vk::raii::Image(device->getDevice(), imageInfo);
-
-    constexpr vk::MemoryPropertyFlags imageProperties = vk::MemoryPropertyFlagBits::eHostCoherent |
-        vk::MemoryPropertyFlagBits::eHostVisible;
-
-    const vk::MemoryRequirements memoryRequirements = image.getMemoryRequirements();
-    const vk::MemoryAllocateInfo allocInfo{
-        .allocationSize = memoryRequirements.size,
-        .memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, imageProperties)
-    };
-    auto memory = vk::raii::DeviceMemory(device->getDevice(), allocInfo);
-    image.bindMemory(memory, 0);
-
-    void* mapped = memory.mapMemory(0, memoryRequirements.size);
-    memcpy(mapped, data, memoryRequirements.size);
-
-    const vk::ImageViewCreateInfo viewInfo{
-        .image = image,
-        .viewType = vk::ImageViewType::e2D,
-        .format = imageFormat,
-        .subresourceRange = {.aspectMask = vk::ImageAspectFlagBits::eColor, .baseMipLevel = 0, .levelCount = 1,
-            .baseArrayLayer = 0, .layerCount = 1}
-    };
-
-    auto imageView = vk::raii::ImageView(device->getDevice(), viewInfo);
-    return std::make_unique<VulkanTexture>(std::move(image), std::move(memory), mapped, std::move(imageView));
 }
 
 void transitionImageLayout(
@@ -231,9 +146,8 @@ void transitionImageLayout(
 void VulkanRenderer::begin() {
     const auto& frameContext = frameContexts[frameIndex];
 
-    auto fenceResult = device->getDevice().waitForFences(*frameContext.inFlightFence, vk::True, UINT64_MAX);
-    if (fenceResult != vk::Result::eSuccess) {
-        throw std::runtime_error("failed to wait for fence");
+    if (const auto fenceResult = device->getDevice().waitForFences(*frameContext.inFlightFence, vk::True, UINT64_MAX); fenceResult != vk::Result::eSuccess) {
+        LOG_FATAL("failed to wait for vulkan fence");
     }
 
     auto [result, imageIndex] = swapChain->getHandle().acquireNextImage(UINT64_MAX,
@@ -246,7 +160,7 @@ void VulkanRenderer::begin() {
     }
     if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
         assert(result == vk::Result::eTimeout || result == vk::Result::eNotReady);
-        throw std::runtime_error("failed to acquire swap chain image!");
+        LOG_FATAL("failed to acquire vulkan swap chain image!");
     }
 
     device->getDevice().resetFences(*frameContext.inFlightFence);
@@ -288,6 +202,40 @@ void VulkanRenderer::begin() {
     frameContext.commandBuffer.setScissor(0, vk::Rect2D(vk::Offset2D(0,0), swapChain->getExtent()));
     frameContext.commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout->getHandle(), 0, *frameContext.descriptorSet, nullptr);
 
+}
+
+void VulkanRenderer::useShader(const rhi::Shader &shader) {
+}
+
+void VulkanRenderer::bindUniformBuffer(const rhi::Buffer &buffer, uint32_t binding, uint32_t offset, uint32_t size,
+    ShaderStage shaderStage) {
+}
+
+void VulkanRenderer::bindVertexBuffer(const rhi::Buffer &buffer, uint32_t binding, uint32_t offset) {
+}
+
+void VulkanRenderer::bindIndexBuffer(const rhi::Buffer &buffer, IndexType indexType, uint32_t offset) {
+}
+
+void VulkanRenderer::draw(uint32_t vertexCount, uint32_t firstVertex) {
+}
+
+void VulkanRenderer::drawIndexed(uint32_t indexCount, uint32_t firstIndex, uint32_t vertexOffset) {
+}
+
+void VulkanRenderer::drawInstanced(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex,
+    uint32_t firstInstance) {
+}
+
+void VulkanRenderer::drawIndexedInstanced(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex,
+    uint32_t vertexOffset, uint32_t firstInstance) {
+}
+
+void VulkanRenderer::drawIndirect(const rhi::Buffer &buffer, uint32_t offset, uint32_t drawCount, uint32_t stride) {
+}
+
+void VulkanRenderer::drawIndexedIndirect(const rhi::Buffer &buffer, uint32_t offset, uint32_t drawCount,
+    uint32_t stride) {
 }
 
 void VulkanRenderer::end() {
@@ -336,59 +284,6 @@ void VulkanRenderer::end() {
     else {
         assert(result == vk::Result::eSuccess);
     }
-}
-
-void VulkanRenderer::createFrameContexts() {
-    auto commandBuffers = VulkanCommandBuffers(*device, *commandPool, MAX_FRAMES_IN_FLIGHT);
-
-    std::vector<std::unique_ptr<VulkanBuffer>> uniformBuffers;
-    uniformBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
-    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        uniformBuffers.emplace_back(createVulkanBuffer(sizeof(rhi::UniformBufferObject), BufferType::UniformBuffer));
-    }
-
-    VulkanDescriptorSets descriptorSets = VulkanDescriptorSets(*device, *descriptorSetLayout,*descriptorPool, uniformBuffers, MAX_FRAMES_IN_FLIGHT);
-    frameContexts.reserve(MAX_FRAMES_IN_FLIGHT);
-    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        VulkanFrameContext frameContext{
-            .pipeline = *pipeline,
-            .commandBuffer = std::move(commandBuffers.getHandle()[i]),
-            .descriptorSet = std::move(descriptorSets.getHandle()[i]),
-            .uniformBuffer = std::move(uniformBuffers[i]),
-            .presentCompleteSemaphore =vk::raii::Semaphore(device->getDevice(), vk::SemaphoreCreateInfo()),
-            .inFlightFence = vk::raii::Fence(device->getDevice(), vk::FenceCreateInfo{
-                vk::FenceCreateInfo{ .flags = vk::FenceCreateFlagBits::eSignaled }})
-        };
-        frameContexts.emplace_back(std::move(frameContext));
-    }
-}
-
-
-void VulkanRenderer::renderOntoSwapChain(const rhi::RenderPacket& renderPacket) {
-    begin();
-
-    const auto& frameContext = frameContexts[frameIndex];
-    rhi::UniformBufferObject ubo{};
-    ubo.proj = renderPacket.cameraTransform.camera->getProjectionMat(
-        static_cast<float>(swapChain->getExtent().width) / static_cast<float>(swapChain->getExtent().height));
-    ubo.proj[1][1] *= -1;
-    ubo.view = renderPacket.cameraTransform.view;
-
-    auto* vertexBuffer = static_cast<VulkanBuffer*>(renderPacket.assetManager->getVertexBuffer());
-    auto* indexBuffer = static_cast<VulkanBuffer*>(renderPacket.assetManager->getIndexBuffer());
-    frameContext.commandBuffer.bindVertexBuffers(0, *vertexBuffer->getBuffer(), {0});
-    frameContext.commandBuffer.bindIndexBuffer(*indexBuffer->getBuffer(), 0, vk::IndexType::eUint32);
-
-    for (const rhi::Renderable renderable : renderPacket.renderables) {
-        const GPUMesh mesh = renderPacket.assetManager->getMesh(renderable.meshID);
-        if (mesh.hash == ~0) continue;
-        ubo.model = renderable.model;
-        frameContext.uniformBuffer->write(&ubo, sizeof(ubo), 0);
-        frameContext.commandBuffer.drawIndexed(mesh.indexCount, 1,
-            mesh.indexRegion.offset * sizeof(Index), mesh.vertexRegion.offset, 0);
-    }
-
-    end();
 }
 
 }

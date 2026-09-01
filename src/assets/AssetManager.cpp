@@ -4,6 +4,11 @@
 
 #include "../../include/assets/AssetManager.h"
 
+#include "graphics/Buffer.h"
+
+#include 
+#include 
+
 namespace obsidium {
 
 AssetManager::AssetManager(Renderer *renderer) {
@@ -24,11 +29,11 @@ GPUMesh AssetManager::getMesh(const AssetID id) const {
     return meshManager->getMesh(id);
 }
 
-rhi::Buffer * AssetManager::getVertexBuffer() const {
+Buffer * AssetManager::getVertexBuffer() const {
     return meshManager->getVertexBuffer();
 }
 
-rhi::Buffer * AssetManager::getIndexBuffer() const {
+Buffer * AssetManager::getIndexBuffer() const {
     return meshManager->getIndexBuffer();
 }
 

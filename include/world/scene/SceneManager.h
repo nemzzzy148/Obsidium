@@ -20,6 +20,7 @@ public:
     uint32_t createScene(const std::string& sceneName, bool load = true);
 
     Scene activeScene();
+    const std::vector<EntityID>& activeSceneObjects();
     [[nodiscard]] uint32_t activeSceneIndex() const;
     [[nodiscard]] const std::string& activeSceneName() const;
     void loadScene(uint32_t sceneIndex);

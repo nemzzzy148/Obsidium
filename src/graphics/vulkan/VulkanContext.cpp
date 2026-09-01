@@ -6,7 +6,6 @@
 
 #include <iostream>
 
-namespace obsidium::vulkan {
 VulkanContext::VulkanContext(std::vector<char const*> requiredExtensions) {
     createInstance(std::move(requiredExtensions));
     setupDebugMessenger();
@@ -85,6 +84,4 @@ void VulkanContext::setupDebugMessenger() {
     };
 
     debugMessenger = instance.createDebugUtilsMessengerEXT( messengerCreateInfo );
-}
-
 }

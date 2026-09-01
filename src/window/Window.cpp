@@ -8,15 +8,10 @@
 
 namespace obsidium {
 
-std::unique_ptr<Window> Window::create(WindowBackend windowBackend, int width, int height, std::string title) {
-    switch (windowBackend) {
-        case WindowBackend::GLFW:
-            return std::make_unique<GLFWImplementation>(GLFWImplementation(width, height, title));
-    }
-    return std::make_unique<GLFWImplementation>(GLFWImplementation(width, height, title));
+Window Window::create(int width, int height, const std::string& title) {
+    Window window;
+    window.backend = std::make_unique<GLFWImplementation>(width, height, title);
+    return std::move(window);
 }
 
-WindowBackend Window::getBackend() {
-    return backend;
-}
 }

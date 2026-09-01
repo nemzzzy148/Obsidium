@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.2)
 project(Obsidium)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -25,10 +25,6 @@ add_library(Obsidium SHARED
         src/graphics/vulkan/VulkanSwapchain.h
         src/graphics/vulkan/VulkanRenderer.cpp
         src/graphics/vulkan/VulkanRenderer.h
-        src/rhi/RendererBackend.h
-        src/rhi/Buffer.h
-        src/rhi/Texture.h
-        src/rhi/RenderPacket.h
         src/graphics/Renderer.cpp
         src/graphics/vulkan/VulkanFrameContext.h
         src/graphics/vulkan/VulkanPipeline.cpp
@@ -53,8 +49,6 @@ add_library(Obsidium SHARED
         src/graphics/vulkan/VulkanCommandPool.h
         src/graphics/vulkan/VulkanCommandBuffers.cpp
         src/graphics/vulkan/VulkanCommandBuffers.h
-        src/graphics/shader/Shader.cpp
-        src/graphics/shader/Shader.h
         src/graphics/vulkan/Mesh.h
         include/utils/Hash.h
         src/window/Window.cpp
@@ -62,7 +56,6 @@ add_library(Obsidium SHARED
         src/graphics/vulkan/VulkanDescriptors.cpp
         src/graphics/vulkan/VulkanDescriptors.h
         include/assets/TextureManager.h
-        src/rhi/RendererBackend.cpp
         include/Obsidium.h
         src/graphics/Polygon.cpp
         include/graphics/Polygon.h
@@ -99,6 +92,27 @@ add_library(Obsidium SHARED
         include/assets/ShaderManager.h
         src/graphics/Material.cpp
         include/graphics/Material.h
+        include/graphics/Sampler.h
+        src/graphics/vulkan/VulkanCache.cpp
+        src/graphics/vulkan/VulkanCache.h
+        src/utils/Algorithm.h
+        src/assets/MaterialManager.cpp
+        include/assets/MaterialManager.h
+        src/utils/RefCounter.h
+        src/utils/AssetPtr.h
+        src/graphics/Shader.cpp
+        src/graphics/vulkan/VulkanShader.cpp
+        src/graphics/vulkan/VulkanShader.h
+        include/graphics/RenderTarget.h
+        src/graphics/BackendShaderCompiler.cpp
+        include/graphics/ShaderCompiler.h
+        src/graphics/BackendShaderCompiler.h
+        src/graphics/vulkan/VulkanRenderTarget.cpp
+        src/graphics/vulkan/VulkanRenderTarget.h
+        src/graphics/ShaderCompiler.cpp
+        include/graphics/SamplerState.h
+        src/graphics/Sampler.cpp
+        src/window/WindowBackend.h
 )
 
 target_include_directories(Obsidium PUBLIC
@@ -110,7 +124,6 @@ target_include_directories(Obsidium PRIVATE thirdparty)
 enable_testing()
 
 add_subdirectory(sandbox)
-
 
 target_compile_definitions(Obsidium PUBLIC VULKAN_HPP_NO_STRUCT_CONSTRUCTORS)
 

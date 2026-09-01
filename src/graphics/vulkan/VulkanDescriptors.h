@@ -12,36 +12,51 @@
 
 namespace obsidium::vulkan {
 
-class VulkanDescriptorPool {
+class VulkanUniformDescriptorPool {
 public:
-    VulkanDescriptorPool(VulkanDevice& device, uint32_t framesInFlight, uint32_t maxSamplers, uint32_t maxTextures);
-    vk::raii::DescriptorPool& getUniformPool() { return uniformPool; }
-    vk::raii::DescriptorPool& getBindlessPool() { return bindlessPool; }
+    VulkanUniformDescriptorPool(VulkanDevice& device, uint32_t framesInFlight);
+    vk::raii::DescriptorPool& getHandle() { return pool; }
 private:
     void createUniformPool(VulkanDevice &device, uint32_t count);
-    vk::raii::DescriptorPool uniformPool = nullptr;
-    static constexpr uint32_t bindlessSetCount = 2;
+    vk::raii::DescriptorPool pool = nullptr;
+};
+
+class VulkanBindlessDescriptorPool {
+public:
+    VulkanBindlessDescriptorPool(VulkanDevice& device, uint32_t maxSamplers, uint32_t maxTextures);
+    vk::raii::DescriptorPool& getHandle() { return bindlessPool; }
+private:
+    static constexpr uint32_t bindlessSetCount = 2; // set count != types!
     void createBindlessPool(VulkanDevice &device, uint32_t maxSamplers, uint32_t maxTextures);
     vk::raii::DescriptorPool bindlessPool = nullptr;
 };
 
-class VulkanDescriptorSets {
+class VulkanUniformDescriptorSets {
 public:
-    VulkanDescriptorSets(VulkanDevice &device, VulkanDescriptorSetLayout& descriptorSetLayout,
-        VulkanDescriptorPool &descriptorPool, const std::vector<std::unique_ptr<VulkanBuffer>>& uniformBuffers,
-        uint32_t framesInFlight, uint32_t maxSamplers, uint32_t maxTextures);
-
-    std::vector<vk::raii::DescriptorSet>& getUniformSet() { return uniformSet; }
-    vk::raii::DescriptorSet& getSamplerSet() { return samplerSet; }
-    vk::raii::DescriptorSet& getTextureSet() { return textureSet; }
+    VulkanUniformDescriptorSets(VulkanDevice &device, VulkanDescriptorSetLayout& descriptorSetLayout,
+        VulkanUniformDescriptorPool &uniformPool, const std::vector<std::unique_ptr<VulkanBuffer>>& uniformBuffers,
+        uint32_t framesInFlight, uint32_t size, uint32_t offset);
+    std::vector<vk::raii::DescriptorSet>& getHandle() { return uniformSet; }
 private:
     void createUniformSets(VulkanDevice &device, VulkanDescriptorSetLayout& descriptorSetLayout,
-        VulkanDescriptorPool &descriptorPool,
-        const std::vector<std::unique_ptr<VulkanBuffer>>& uniformBuffers, uint32_t framesInFlight);
+        VulkanUniformDescriptorPool &uniformPool, const std::vector<std::unique_ptr<VulkanBuffer>>& uniformBuffers,
+        uint32_t count, uint32_t size, uint32_t offset);
     std::vector<vk::raii::DescriptorSet> uniformSet;
+};
 
-    void createBindlessSet(VulkanDevice &device, VulkanDescriptorSetLayout& descriptorSetLayout,
-        VulkanDescriptorPool &descriptorPool, uint32_t maxSamplers, uint32_t maxTextures);
+class VulkanBindlessDescriptorSets {
+public:
+    VulkanBindlessDescriptorSets(VulkanDevice &device, VulkanDescriptorSetLayout& descriptorSetLayout,
+        VulkanBindlessDescriptorPool &bindlessPool, uint32_t maxSamplers, uint32_t maxTextures);
+    vk::raii::DescriptorSet& getSamplerSet() { return samplerSet; }
+    vk::raii::DescriptorSet& getTextureSet() { return textureSet; }
+
+    void updateTextureSet(const vk::raii::ImageView& view, uint32_t index) const;
+    void updateSamplerSet(const vk::raii::Sampler& sampler, uint32_t index) const;
+private:
+    void createBindlessSet(VulkanDescriptorSetLayout& descriptorSetLayout,
+        VulkanBindlessDescriptorPool &bindlessPool, uint32_t maxSamplers, uint32_t maxTextures);
+    VulkanDevice& device;
     vk::raii::DescriptorSet samplerSet = nullptr;
     vk::raii::DescriptorSet textureSet = nullptr;
 };

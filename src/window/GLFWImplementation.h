@@ -5,11 +5,27 @@
 #pragma once
 #include <glfw/glfw3.h>
 
+#include "WindowBackend.h"
+#include "window/Window.h"
 #include "../../include/window/Window.h"
 
 namespace obsidium {
-class GLFWImplementation : public Window {
+
+class GLFWImplementation : public WindowBackend {
 public:
+    GLFWImplementation(const int width, const int height, const std::string& title) {
+        if (!glfwInit()) throw std::runtime_error("failed to initialize glfw");
+
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE, true);
+
+        window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+        if (!window) {
+            glfwTerminate();
+            throw std::runtime_error("failed to create glfw window");
+        }
+    }
+
     std::string getTitle() override {
         return glfwGetWindowTitle(window);
     }
@@ -38,34 +54,18 @@ public:
     void getSize(int *width, int *height) override {
         glfwGetWindowSize(window, width, height);
     }
-    glm::ivec2 getSize() override {
-        int width, height;
-        glfwGetWindowSize(window, &width, &height);
-        return {width, height};
-    }
 
 
     void setSize(const int width, const int height) override {
         glfwSetWindowSize(window, width, height);
     }
-    void setSize(glm::ivec2 size) override {
-        glfwSetWindowSize(window, size.x, size.y);
-    }
 
     void getPosition(int* x, int* y) override {
         glfwGetWindowPos(window, x, y);
     }
-    glm::ivec2 getPosition() override {
-        int x, y;
-        glfwGetWindowPos(window, &x, &y);
-        return {x, y};
-    }
 
-    void setPosition(int x, int y) override {
+    void setPosition(const int x, const int y) override {
         glfwSetWindowPos(window, x, y);
-    }
-    void setPosition(glm::ivec2 position) override {
-        glfwSetWindowPos(window, position.x, position.y);
     }
 
 
@@ -86,21 +86,9 @@ public:
         return {extensions, extensions + extensionCount};
     }
 
-    void* getNativeWindowHandle() override { return static_cast<void *>(window); }
-    WindowBackend getBackend() override { return WindowBackend::GLFW; }
+    void* getNativeWindowHandle() override { return window; }
+    WindowBackendType getBackend() override { return WindowBackendType::GLFW; }
 private:
-    GLFWImplementation(int width, int height, std::string& title) {
-        if (!glfwInit()) throw std::runtime_error("failed to initialize glfw");
-
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, true);
-
-        window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-        if (!window) {
-            glfwTerminate();
-            throw std::runtime_error("failed to create glfw window");
-        }
-    }
 
     GLFWwindow* window = nullptr;
 

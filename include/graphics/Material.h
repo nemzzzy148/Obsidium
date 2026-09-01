@@ -3,29 +3,48 @@
 //
 
 #pragma once
-#include <unordered_map>
-#include <glm/glm.hpp>
+
+#include "Shader.h"
 
 namespace obsidium {
-struct AssetID;
+class Texture;
+class Sampler;
 
-class Material {
-public:
-private:
-
+enum class MaterialType {
+    Unlit,
+    SimpleLit
 };
 
-struct MaterialProperties { // push constants / texture
-    std::unordered_map<std::string, AssetID> textures;
-    std::unordered_map<std::string, float> floats;
-    std::unordered_map<std::string, int> integers;
-    std::unordered_map<std::string, glm::vec2> vector2s;
-    std::unordered_map<std::string, glm::vec3> vector3s;
-    std::unordered_map<std::string, glm::vec4> vector4s;
-    // gradient implementation
-    std::unordered_map<std::string, glm::mat2> matrix2s;
-    std::unordered_map<std::string, glm::mat3> matrix3s;
-    std::unordered_map<std::string, glm::mat4> matrix4s;
+//template<typename T>
+//concept ShaderParameterTypeRequirement = std::is_same_v<T, int32_t>
+
+class Material : public RefCounter {
+public:
+    explicit Material(Renderer& renderer, Shader& shader);
+
+    void setParameter(std::string_view parameterName, ParameterType<ShaderParameterType::Bool> boolean);
+    void setParameter(std::string_view parameterName, ParameterType<ShaderParameterType::Int> integer);
+    void setParameter(std::string_view parameterName, ParameterType<ShaderParameterType::UInt> unsignedInteger);
+    void setParameter(std::string_view parameterName, ParameterType<ShaderParameterType::Float> floatingPoint);
+    void setParameter(std::string_view parameterName, ParameterType<ShaderParameterType::Vec2> vec2);
+    void setParameter(std::string_view parameterName, ParameterType<ShaderParameterType::Vec3> vec3);
+    void setParameter(std::string_view parameterName, ParameterType<ShaderParameterType::Vec4> vec4);
+    void setParameter(std::string_view parameterName, ParameterType<ShaderParameterType::Mat2x2> mat2x2);
+    void setParameter(std::string_view parameterName, ParameterType<ShaderParameterType::Mat3x3> mat3x3);
+    void setParameter(std::string_view parameterName, ParameterType<ShaderParameterType::Mat4x4> mat4x4);
+    void setParameter(std::string_view parameterName, const Sampler& sampler);
+    void setParameter(std::string_view parameterName, const Texture& texture);
+private:
+    template<typename T>
+    void setParameter(std::string_view parameterName, T value);
+
+    void setupShaderParameterStorage(std::vector<ShaderParameter>& shaderParameters);
+    std::vector<uint8_t> parameterStorage;
+    std::unordered_map<std::string, std::pair<ShaderParameter, uint32_t>> parameters;
+
+    Renderer& renderer;
+
+    Shader shader;
 };
 
 }

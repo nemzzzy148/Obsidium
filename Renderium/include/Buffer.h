@@ -3,9 +3,9 @@
 //
 
 #pragma once
-#include <glm/glm.hpp>
+#include <cstddef>
 
-namespace obsidium::rhi {
+namespace renderium {
 
 class Buffer {
 public:
@@ -14,12 +14,6 @@ public:
     virtual void destroy() = 0;
     [[nodiscard]] virtual size_t getSize() const = 0;
     virtual void write(const void* data, size_t size, size_t offset) = 0;
-};
-
-struct UniformBufferObject {
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 proj;
 };
 
 }

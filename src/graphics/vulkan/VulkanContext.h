@@ -11,9 +11,6 @@ constexpr bool enableValidationLayers = true;
 #endif
 
 #include "vulkan/vulkan_raii.hpp"
-
-namespace obsidium::vulkan {
-
 class VulkanContext {
 public:
     VulkanContext(std::vector<char const*> requiredExtensions);
@@ -36,5 +33,3 @@ private:
 
     void setupDebugMessenger();
 };
-
-}

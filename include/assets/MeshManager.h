@@ -7,7 +7,6 @@
 
 #include "../../src/utils/IDSystem.h"
 #include "../graphics/Mesh.h"
-#include "../../src/rhi/Buffer.h"
 #include "../graphics/Renderer.h"
 
 namespace obsidium {
@@ -19,8 +18,8 @@ public:
 
     [[nodiscard]] GPUMesh getMesh(AssetID id) const;
 
-    [[nodiscard]] rhi::Buffer* getVertexBuffer() const { return vertexBuffer.get(); }
-    [[nodiscard]] rhi::Buffer* getIndexBuffer() const { return indexBuffer.get(); }
+    [[nodiscard]] Buffer* getVertexBuffer() const { return vertexBuffer.get(); }
+    [[nodiscard]] Buffer* getIndexBuffer() const { return indexBuffer.get(); }
 private:
     MeshManager() = default;
     static std::unique_ptr<MeshManager> create(const Renderer& renderer, IDSystem<AssetID>* idSystem);
@@ -34,8 +33,8 @@ private:
     std::vector<BufferRegion> freeVertexSpaces;
     std::vector<BufferRegion> freeIndexSpaces;
 
-    std::unique_ptr<rhi::Buffer> vertexBuffer;
-    std::unique_ptr<rhi::Buffer> indexBuffer;
+    std::unique_ptr<Buffer> vertexBuffer;
+    std::unique_ptr<Buffer> indexBuffer;
 
     IDSystem<AssetID>* idSystem = nullptr;
 

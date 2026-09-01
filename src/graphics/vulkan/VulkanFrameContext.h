@@ -9,11 +9,7 @@
 namespace obsidium::vulkan {
 
 struct VulkanFrameContext {
-    VulkanPipeline& pipeline;
     vk::raii::CommandBuffer commandBuffer;
-
-    vk::raii::DescriptorSet descriptorSet;
-    std::unique_ptr<VulkanBuffer> uniformBuffer;
 
     vk::raii::Semaphore presentCompleteSemaphore;
     vk::raii::Fence inFlightFence;

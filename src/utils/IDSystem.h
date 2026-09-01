@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include <unordered_map>
 #include <vector>
 
 namespace obsidium {
@@ -10,8 +11,10 @@ namespace obsidium {
 struct AssetID {
     uint32_t index;
     uint32_t version;
+
+    uint64_t hash = ~0;
     bool operator==(const AssetID& other) const {
-        return index == other.index && version == other.version;
+        return index == other.index && version == other.version && hash == other.hash;
     }
 };
 
@@ -38,6 +41,8 @@ public:
     IDSystem() = default;
     T allocate();
     void free(T id);
+
+    bool valid(T id) const;
 private:
     std::vector<uint32_t> freeSlots;
     std::vector<uint32_t> versions;
@@ -52,8 +57,12 @@ struct std::hash<obsidium::AssetID> {
     std::size_t operator() (const obsidium::AssetID& id) const noexcept {
         const size_t h1 = std::hash<uint32_t>{}(id.index);
         const size_t h2 = std::hash<uint32_t>{}(id.version);
+        const size_t h3 = std::hash<uint64_t>{}(id.hash);
 
-        return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+        size_t seed = h1 ^ h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2);
+        seed ^= h3 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+
+        return seed;
     }
 };
 
@@ -63,6 +72,6 @@ struct std::hash<obsidium::EntityID> {
         const size_t h1 = std::hash<obsidium::EntityIndex>{}(id.index);
         const size_t h2 = std::hash<obsidium::EntityIndex>{}(id.version);
 
-        return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+        return h1 ^ h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2);
     }
 };

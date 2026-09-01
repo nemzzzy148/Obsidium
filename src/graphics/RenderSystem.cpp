@@ -12,14 +12,15 @@ RenderSystem::RenderSystem(Renderer &renderer) : renderer(renderer) {}
 
 void RenderSystem::update(World &world, float dt) {
     rhi::RenderPacket renderPacket;
-    for (EntityComponentManager& ECM = world.ECManager();
-            const auto& id : ECM.getSet<MeshComponent>().getEntitySet()) {
+
+    for (const EntityID& id : world.sceneManager().activeSceneObjects()) {
         const MeshComponent mesh = ECM.getComponent<MeshComponent>(id);
         if (!mesh.enabled) continue;
         renderPacket.renderables.push_back({mesh.id,
             ECM.getComponent<MaterialComponent>(id).textureID,
             ECM.getComponent<TransformComponent>(id).getModelMatrix()});
     }
+
     renderer.submitPacket(renderPacket);
 }
 

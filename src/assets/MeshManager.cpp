@@ -7,6 +7,9 @@
 #include <iostream>
 
 #include "../../include/utils/Hash.h"
+#include "../utils/Algorithm.h"
+#include "../utils/Logger.h"
+#include "graphics/Buffer.h"
 
 namespace obsidium {
 
@@ -18,13 +21,14 @@ AssetID MeshManager::add(const Mesh &data) {
     uint64_t hash = hash::fnv1a(data.vertices.data(), vertexSize);
     hash = hash::fnv1aContinue(hash, data.indices.data(), indexSize);
 
-    auto it = hashes.find(hash);
-    if (it != hashes.end()) {
+    if (const auto it = hashes.find(hash); it != hashes.end()) {
         const AssetID collision = it->second;
         const GPUMesh collidedMesh = meshes.at(collision);
 
         if (collidedMesh.indexCount == data.indices.size() &&
             collidedMesh.vertexCount == data.vertices.size()) {
+
+            LOG_INFO("found mesh match, returning match");
             return  collision;
         }
     }
@@ -91,52 +95,35 @@ AssetID MeshManager::add(const Mesh &data) {
         indexBuffer->write(data.indices.data(), indexRegion.size, indexRegion.offset);
 
         AssetID id = idSystem->allocate();
+        id.hash = hash;
 
         hashes.emplace(hash, id);
         meshes.emplace(id, mesh);
 
+        LOG_INFO("gpu mesh was created successfully");
+
         return id;
     }
 
-    std::cerr << "no memory available in the buffers to allocate data for the mesh" << std::endl;
+    LOG_ERROR("failed to create mesh, no buffer space is available anymore!");
 
     return InvalidAssetID;
 }
 
-static void coalesceAndFree(std::vector<BufferRegion>& freeSpace, BufferRegion region) {
-    bool merged = true;
-    while (merged) {
-        merged = false;
-        for (size_t i = 0; i < freeSpace.size(); i++) {
-            const BufferRegion space = freeSpace[i];
-            bool leftAdjacent  = (space.size + space.offset) == region.offset;
-            bool rightAdjacent = (region.size + region.offset) == space.offset;
-            if (leftAdjacent || rightAdjacent) {
-                if (leftAdjacent) region.offset = space.offset;
-                region.size += space.size;
-
-                freeSpace.erase(freeSpace.begin() + i);
-                merged = true;
-                break;
-            }
-        }
-    }
-    freeSpace.push_back(region);
-}
-
 void MeshManager::remove(const AssetID id) {
     if (!meshes.contains(id)) {
-        std::cerr << "the mesh handle " << id.index << ":" << id.version << " is invalid" << std::endl;
+        LOG_WARNING("the mesh handle is invalid while trying to remove it.");
         return;
     }
 
     const GPUMesh mesh = meshes.at(id);
     meshes.erase(id);
-    hashes.erase(mesh.hash);
+    hashes.erase(id.hash);
     idSystem->free(id);
 
-    coalesceAndFree(freeVertexSpaces, mesh.vertexRegion);
-    coalesceAndFree(freeIndexSpaces, mesh.indexRegion);
+    coalesceAndFreeBufferRegions(freeVertexSpaces, mesh.vertexRegion);
+    coalesceAndFreeBufferRegions(freeIndexSpaces, mesh.indexRegion);
+    LOG_INFO("mesh removed successfully!");
 }
 
 GPUMesh MeshManager::getMesh(const AssetID id) const {
@@ -145,12 +132,13 @@ GPUMesh MeshManager::getMesh(const AssetID id) const {
 
 std::unique_ptr<MeshManager> MeshManager::create(const Renderer& renderer, IDSystem<AssetID>* idSystem) {
     auto assetManager = std::unique_ptr<MeshManager>(new MeshManager());
-    assetManager->vertexBuffer = std::move(renderer.getBackend()->createBuffer(vertexAllocationBufferSize, BufferType::IndexBuffer));
-    assetManager->indexBuffer = std::move(renderer.getBackend()->createBuffer(indexAllocationBufferSize, BufferType::IndexBuffer));
+    assetManager->vertexBuffer = std::make_unique<Buffer>(renderer.createBuffer(BufferType::VertexBuffer, vertexAllocationBufferSize));;
+    assetManager->indexBuffer = std::make_unique<Buffer>(renderer.createBuffer(BufferType::IndexBuffer, indexAllocationBufferSize));
     assetManager->idSystem = idSystem;
 
     assetManager->freeVertexSpaces.push_back({vertexAllocationBufferSize, 0});
     assetManager->freeIndexSpaces.push_back({indexAllocationBufferSize, 0});
+    LOG_INFO("mesh manager created successfully!");
     return std::move(assetManager);
 }
 

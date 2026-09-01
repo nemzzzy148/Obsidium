@@ -30,6 +30,10 @@ Scene SceneManager::activeScene() {
     return {this, currentSceneIndex};
 }
 
+const std::vector<EntityID>& SceneManager::activeSceneObjects() {
+    return scenes[currentSceneIndex].ownedEntities;
+}
+
 uint32_t SceneManager::activeSceneIndex() const {
     return currentSceneIndex;
 }
