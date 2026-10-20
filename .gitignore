@@ -4,3 +4,4 @@ thirdparty/
 .DS_Store
 .VSCodeCounter
 .clang-tidy
+assets/

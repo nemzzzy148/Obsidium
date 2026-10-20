@@ -116,7 +116,7 @@ VulkanPipeline::VulkanPipeline(VulkanDevice &device, VulkanSwapChain& swapChain,
         .stage = vk::ShaderStageFlagBits::eVertex,
         .module = shaderModule,
         .pName = ShaderCompiler::vertexFunctionName.c_str()
-    };
+    }
     vk::PipelineShaderStageCreateInfo fragInfo{
         .stage = vk::ShaderStageFlagBits::eFragment,
         .module = shaderModule,
